@@ -191,23 +191,6 @@ Connection Status: Real-time state with color coding
 Message Log: All connection events logged
 Export Feature: Database export for offline analysis
 
-## 🏗️ Project Structure
-```
-lib/
-├── main.dart                    # Application entry point
-├── models/                      # Data models
-│   ├── connection_profile.dart
-│   ├── message_template.dart
-│   └── message.dart
-├── services/                    # Business logic
-│   ├── profile_helper.dart      # Profile database operations
-│   ├── template_helper.dart     # Template database operations
-│   └── database_helper.dart     # Message history management
-└── widgets/                     # Reusable UI components
-    ├── message_item.dart        # Individual message display
-    └── connection_stats.dart    # Connection statistics widget
-```
-
 ## 📈 Performance Characteristics
 
 - Memory Usage: Base ~50MB, with 1000 messages ~70MB
