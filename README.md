@@ -47,11 +47,11 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 
 **Connection Management** | **Message Log** | **Profiles & Templates**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="screenshots/connection.png" width="300" alt="Connection Screen"> | <img src="screenshots/messaging.png" width="300" alt="Message Log"> | <img src="screenshots/profiles.png" width="300" alt="Profiles Management">
+<img src="images/connection.jpeg" width="300" alt="Connection Screen"> | <img src="images/message.jpeg" width="300" alt="Message Log"> | <img src="images/profiles.jpeg" width="300" alt="Profiles Management">
 
 **Dark Mode Theme** | **Will Message Setup** | **Export Functionality**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="screenshots/dark_mode.png" width="300" alt="Dark Mode"> | <img src="screenshots/will_config.png" width="300" alt="Will Configuration"> | <img src="screenshots/export.png" width="300" alt="Export Feature">
+<img src="images/dark_mode.PNG" width="300" alt="Dark Mode"> | <img src="images/will_config.PNG" width="300" alt="Will Configuration"> | <img src="images/export.PNG" width="300" alt="Export Feature">
 
 </div>
 
@@ -227,25 +227,32 @@ Export Feature: Database export for offline analysis
 We welcome contributions! Here's how you can help:
 
 ### Fork the repository
-```
-Create a feature branch
+
+1. Create a feature branch
+```   
 git checkout -b feature/AmazingFeature
-Commit your changes
-git commit -m 'Add some AmazingFeature'
-Push to the branch
-git push origin feature/AmazingFeatur
-Open a Pull Request
 ```
+2. Commit your changes
+```
+git commit -m 'Add some AmazingFeature'
+```
+3. Push to the branch
+```
+git push origin feature/AmazingFeatur
+```
+4. Open a Pull Request
+
 ## Please read our Contributing Guidelines for more details.
-📄 License
-This project is licensed under the MIT License – see the LICENSE file for details.
+### 📄 License
+- This project is licensed under the MIT License – see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
-- ** mqtt_client package for core MQTT functionality
-Public MQTT brokers for testing:
-test.mosquitto.org
-broker.emqx.io
+- **mqtt_client** package for core MQTT functionality
+- Public MQTT brokers for testing:
+  - `test.mosquitto.org`
+  - `broker.emqx.io`
+
 
 Flutter community for excellent documentation and support
 All contributors who have helped improve this project
