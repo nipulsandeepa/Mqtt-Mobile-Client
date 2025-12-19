@@ -5948,251 +5948,558 @@ Valid Until: ${cert.endValidity}
 
                 const SizedBox(height: 16),
                 
-                // SSL/TLS Certificate Configuration Section
-                Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.lock, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text(
-                              'SSL/TLS Certificate Configuration',
-                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
+                // // SSL/TLS Certificate Configuration Section
+                // Card(
+                //   elevation: 5,
+                //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                //   child: Padding(
+                //     padding: const EdgeInsets.all(16),
+                //     child: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         const Row(
+                //           children: [
+                //             Icon(Icons.lock, color: Colors.red),
+                //             SizedBox(width: 8),
+                //             Text(
+                //               'SSL/TLS Certificate Configuration',
+                //               style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                //             ),
+                //           ],
+                //         ),
+                //         const SizedBox(height: 16),
                         
-                        // Enable SSL/TLS toggle
-                        CheckboxListTile(
-                          title: const Text('Enable SSL/TLS'),
-                          subtitle: const Text('Secure connection (ssl://, wss://)'),
-                          value: _enableTLS,
-                          onChanged: (value) => setState(() {
-                            _enableTLS = value ?? false;
-                            if (!_enableTLS) {
-                              _certificateType = CertificateType.none;
-                            }
-                          }),
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                //         // Enable SSL/TLS toggle
+                //         CheckboxListTile(
+                //           title: const Text('Enable SSL/TLS'),
+                //           subtitle: const Text('Secure connection (ssl://, wss://)'),
+                //           value: _enableTLS,
+                //           onChanged: (value) => setState(() {
+                //             _enableTLS = value ?? false;
+                //             if (!_enableTLS) {
+                //               _certificateType = CertificateType.none;
+                //             }
+                //           }),
+                //           dense: true,
+                //           contentPadding: EdgeInsets.zero,
+                //         ),
                         
-                        if (_enableTLS) ...[
-                          const SizedBox(height: 16),
+                //         if (_enableTLS) ...[
+                //           const SizedBox(height: 16),
                           
-                          // Certificate Type Selection
-                          DropdownButtonFormField<CertificateType>(
-                            value: _certificateType,
-                            decoration: inputDecoration.copyWith(labelText: 'Certificate Type'),
-                            items: const [
-                              DropdownMenuItem(
-                                value: CertificateType.caSigned,
-                                child: Text('CA Signed Server Certificate'),
-                              ),
-                              DropdownMenuItem(
-                                value: CertificateType.caOnly,
-                                child: Text('CA Certificate Only'),
-                              ),
-                              DropdownMenuItem(
-                                value: CertificateType.selfSigned,
-                                child: Text('Self-Signed Certificate'),
-                              ),
-                              DropdownMenuItem(
-                                value: CertificateType.mutualTls,
-                                child: Text('Mutual TLS (Client Certificate)'),
-                              ),
-                              DropdownMenuItem(
-                                value: CertificateType.none,
-                                child: Text('Standard SSL/TLS'),
-                              ),
-                            ],
-                            onChanged: (value) => setState(() => _certificateType = value ?? CertificateType.none),
-                          ),
+                //           // Certificate Type Selection
+                //           DropdownButtonFormField<CertificateType>(
+                //             value: _certificateType,
+                //             decoration: inputDecoration.copyWith(labelText: 'Certificate Type'),
+                //             items: const [
+                //               DropdownMenuItem(
+                //                 value: CertificateType.caSigned,
+                //                 child: Text('CA Signed Server Certificate'),
+                //               ),
+                //               DropdownMenuItem(
+                //                 value: CertificateType.caOnly,
+                //                 child: Text('CA Certificate Only'),
+                //               ),
+                //               DropdownMenuItem(
+                //                 value: CertificateType.selfSigned,
+                //                 child: Text('Self-Signed Certificate'),
+                //               ),
+                //               DropdownMenuItem(
+                //                 value: CertificateType.mutualTls,
+                //                 child: Text('Mutual TLS (Client Certificate)'),
+                //               ),
+                //               DropdownMenuItem(
+                //                 value: CertificateType.none,
+                //                 child: Text('Standard SSL/TLS'),
+                //               ),
+                //             ],
+                //             onChanged: (value) => setState(() => _certificateType = value ?? CertificateType.none),
+                //           ),
                           
-                          const SizedBox(height: 12),
+                //           const SizedBox(height: 12),
                           
-                          // Backward compatibility option
-                          if (_certificateType == CertificateType.none)
-                          CheckboxListTile(
-                            title: const Text('Allow Self-Signed Certificates'),
-                            subtitle: const Text('Accept self-signed certificates (for testing)'),
-                            value: _allowSelfSigned,
-                            onChanged: (value) => setState(() => _allowSelfSigned = value ?? true),
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
+                //           // Backward compatibility option
+                //           if (_certificateType == CertificateType.none)
+                //           CheckboxListTile(
+                //             title: const Text('Allow Self-Signed Certificates'),
+                //             subtitle: const Text('Accept self-signed certificates (for testing)'),
+                //             value: _allowSelfSigned,
+                //             onChanged: (value) => setState(() => _allowSelfSigned = value ?? true),
+                //             dense: true,
+                //             contentPadding: EdgeInsets.zero,
+                //           ),
                           
-                          // CA Certificate Upload
-                          if (_certificateType == CertificateType.caSigned || 
-                              _certificateType == CertificateType.caOnly || 
-                              _certificateType == CertificateType.mutualTls)
-                          ListTile(
-                            leading: const Icon(Icons.security, color: Colors.blue),
-                            title: const Text('CA Certificate'),
-                            subtitle: _caCertificatePath != null 
-                                ? Text(path.basename(_caCertificatePath!))
-                                : const Text('Not selected (will use system defaults)'),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.upload_file),
-                                  onPressed: _pickCaCertificate,
-                                  tooltip: 'Select CA Certificate',
-                                ),
-                                if (_caCertificatePath != null)
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () => setState(() => _caCertificatePath = null),
-                                    tooltip: 'Remove CA Certificate',
-                                  ),
-                              ],
-                            ),
-                          ),
+                //           // CA Certificate Upload
+                //           if (_certificateType == CertificateType.caSigned || 
+                //               _certificateType == CertificateType.caOnly || 
+                //               _certificateType == CertificateType.mutualTls)
+                //           ListTile(
+                //             leading: const Icon(Icons.security, color: Colors.blue),
+                //             title: const Text('CA Certificate'),
+                //             subtitle: _caCertificatePath != null 
+                //                 ? Text(path.basename(_caCertificatePath!))
+                //                 : const Text('Not selected (will use system defaults)'),
+                //             trailing: Row(
+                //               mainAxisSize: MainAxisSize.min,
+                //               children: [
+                //                 IconButton(
+                //                   icon: const Icon(Icons.upload_file),
+                //                   onPressed: _pickCaCertificate,
+                //                   tooltip: 'Select CA Certificate',
+                //                 ),
+                //                 if (_caCertificatePath != null)
+                //                   IconButton(
+                //                     icon: const Icon(Icons.delete, color: Colors.red),
+                //                     onPressed: () => setState(() => _caCertificatePath = null),
+                //                     tooltip: 'Remove CA Certificate',
+                //                   ),
+                //               ],
+                //             ),
+                //           ),
                           
-                          // Client Certificate Upload (for Mutual TLS)
-                          if (_certificateType == CertificateType.mutualTls)
-                          Column(
-                            children: [
-                              ListTile(
-                                leading: const Icon(Icons.badge, color: Colors.green),
-                                title: const Text('Client Certificate'),
-                                subtitle: _clientCertificatePath != null 
-                                    ? Text(path.basename(_clientCertificatePath!))
-                                    : const Text('Not selected'),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.upload_file),
-                                      onPressed: _pickClientCertificate,
-                                      tooltip: 'Select Client Certificate',
-                                    ),
-                                    if (_clientCertificatePath != null)
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => setState(() => _clientCertificatePath = null),
-                                        tooltip: 'Remove Client Certificate',
-                                      ),
-                                  ],
-                                ),
-                              ),
+                //           // Client Certificate Upload (for Mutual TLS)
+                //           if (_certificateType == CertificateType.mutualTls)
+                //           Column(
+                //             children: [
+                //               ListTile(
+                //                 leading: const Icon(Icons.badge, color: Colors.green),
+                //                 title: const Text('Client Certificate'),
+                //                 subtitle: _clientCertificatePath != null 
+                //                     ? Text(path.basename(_clientCertificatePath!))
+                //                     : const Text('Not selected'),
+                //                 trailing: Row(
+                //                   mainAxisSize: MainAxisSize.min,
+                //                   children: [
+                //                     IconButton(
+                //                       icon: const Icon(Icons.upload_file),
+                //                       onPressed: _pickClientCertificate,
+                //                       tooltip: 'Select Client Certificate',
+                //                     ),
+                //                     if (_clientCertificatePath != null)
+                //                       IconButton(
+                //                         icon: const Icon(Icons.delete, color: Colors.red),
+                //                         onPressed: () => setState(() => _clientCertificatePath = null),
+                //                         tooltip: 'Remove Client Certificate',
+                //                       ),
+                //                   ],
+                //                 ),
+                //               ),
                               
-                              ListTile(
-                                leading: const Icon(Icons.vpn_key, color: Colors.orange),
-                                title: const Text('Client Private Key'),
-                                subtitle: _clientPrivateKeyPath != null 
-                                    ? Text(path.basename(_clientPrivateKeyPath!))
-                                    : const Text('Not selected'),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.upload_file),
-                                      onPressed: _pickPrivateKey,
-                                      tooltip: 'Select Private Key',
-                                    ),
-                                    if (_clientPrivateKeyPath != null)
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => setState(() => _clientPrivateKeyPath = null),
-                                        tooltip: 'Remove Private Key',
-                                      ),
-                                  ],
-                                ),
-                              ),
+                //               ListTile(
+                //                 leading: const Icon(Icons.vpn_key, color: Colors.orange),
+                //                 title: const Text('Client Private Key'),
+                //                 subtitle: _clientPrivateKeyPath != null 
+                //                     ? Text(path.basename(_clientPrivateKeyPath!))
+                //                     : const Text('Not selected'),
+                //                 trailing: Row(
+                //                   mainAxisSize: MainAxisSize.min,
+                //                   children: [
+                //                     IconButton(
+                //                       icon: const Icon(Icons.upload_file),
+                //                       onPressed: _pickPrivateKey,
+                //                       tooltip: 'Select Private Key',
+                //                     ),
+                //                     if (_clientPrivateKeyPath != null)
+                //                       IconButton(
+                //                         icon: const Icon(Icons.delete, color: Colors.red),
+                //                         onPressed: () => setState(() => _clientPrivateKeyPath = null),
+                //                         tooltip: 'Remove Private Key',
+                //                       ),
+                //                   ],
+                //                 ),
+                //               ),
                               
-                              if (_clientPrivateKeyPath != null)
-                              TextField(
-                                controller: keyPasswordCtrl,
-                                obscureText: true,
-                                decoration: inputDecoration.copyWith(
-                                  labelText: 'Private Key Password (optional)',
-                                  hintText: 'Enter password if key is encrypted',
-                                ),
-                                onChanged: (value) => _clientKeyPassword = value,
-                              ),
-                            ],
-                          ),
+                //               if (_clientPrivateKeyPath != null)
+                //               TextField(
+                //                 controller: keyPasswordCtrl,
+                //                 obscureText: true,
+                //                 decoration: inputDecoration.copyWith(
+                //                   labelText: 'Private Key Password (optional)',
+                //                   hintText: 'Enter password if key is encrypted',
+                //                 ),
+                //                 onChanged: (value) => _clientKeyPassword = value,
+                //               ),
+                //             ],
+                //           ),
                           
-                          // Verification Options
-                          if (_certificateType != CertificateType.selfSigned && _certificateType != CertificateType.none)
-                          CheckboxListTile(
-                            title: const Text('Verify Certificate'),
-                            subtitle: const Text('Validate certificate chain and hostname'),
-                            value: _verifyCertificate,
-                            onChanged: (value) => setState(() => _verifyCertificate = value ?? true),
-                            dense: true,
-                          ),
+                //           // Verification Options
+                //           if (_certificateType != CertificateType.selfSigned && _certificateType != CertificateType.none)
+                //           CheckboxListTile(
+                //             title: const Text('Verify Certificate'),
+                //             subtitle: const Text('Validate certificate chain and hostname'),
+                //             value: _verifyCertificate,
+                //             onChanged: (value) => setState(() => _verifyCertificate = value ?? true),
+                //             dense: true,
+                //           ),
                           
-                          const SizedBox(height: 16),
+                //           const SizedBox(height: 16),
                           
-                          // Action Buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _testCertificateConnection,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                  icon: const Icon(Icons.verified, size: 18),
-                                  label: const Text('TEST CERTIFICATE'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.info, color: Colors.blue),
-                                onPressed: () {
-                                  _logMessage('Certificate Help', 
-                                      'Certificate Types:\n'
-                                      '1. CA Signed: Use CA certificate to validate server\n'
-                                      '2. CA Only: Trust only specific CA\n'
-                                      '3. Self-Signed: Accept any certificate (testing only)\n'
-                                      '4. Mutual TLS: Both client and server certificates\n'
-                                      '5. Standard SSL: System default certificates',
-                                      isIncoming: false);
-                                },
-                                tooltip: 'Certificate Help',
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.cleaning_services, color: Colors.red),
-                                onPressed: _clearCertificateFiles,
-                                tooltip: 'Clear All Certificates',
-                              ),
-                            ],
-                          ),
+                //           // Action Buttons
+                //           Row(
+                //             children: [
+                //               Expanded(
+                //                 child: ElevatedButton.icon(
+                //                   onPressed: _testCertificateConnection,
+                //                   style: ElevatedButton.styleFrom(
+                //                     backgroundColor: Colors.blue,
+                //                     foregroundColor: Colors.white,
+                //                     padding: const EdgeInsets.symmetric(vertical: 12),
+                //                   ),
+                //                   icon: const Icon(Icons.verified, size: 18),
+                //                   label: const Text('TEST CERTIFICATE'),
+                //                 ),
+                //               ),
+                //               const SizedBox(width: 8),
+                //               IconButton(
+                //                 icon: const Icon(Icons.info, color: Colors.blue),
+                //                 onPressed: () {
+                //                   _logMessage('Certificate Help', 
+                //                       'Certificate Types:\n'
+                //                       '1. CA Signed: Use CA certificate to validate server\n'
+                //                       '2. CA Only: Trust only specific CA\n'
+                //                       '3. Self-Signed: Accept any certificate (testing only)\n'
+                //                       '4. Mutual TLS: Both client and server certificates\n'
+                //                       '5. Standard SSL: System default certificates',
+                //                       isIncoming: false);
+                //                 },
+                //                 tooltip: 'Certificate Help',
+                //               ),
+                //               IconButton(
+                //                 icon: const Icon(Icons.cleaning_services, color: Colors.red),
+                //                 onPressed: _clearCertificateFiles,
+                //                 tooltip: 'Clear All Certificates',
+                //               ),
+                //             ],
+                //           ),
                           
-                          // Certificate Info Display
-                          if (_showCertificateInfo && _certificateInfo.isNotEmpty)
-                          Card(
-                            color: Colors.green[50],
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('📄 Certificate Info:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 4),
-                                  Text(_certificateInfo, style: const TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                //           // Certificate Info Display
+                //           if (_showCertificateInfo && _certificateInfo.isNotEmpty)
+                //           Card(
+                //             color: Colors.green[50],
+                //             child: Padding(
+                //               padding: const EdgeInsets.all(8),
+                //               child: Column(
+                //                 crossAxisAlignment: CrossAxisAlignment.start,
+                //                 children: [
+                //                   const Text('📄 Certificate Info:', style: TextStyle(fontWeight: FontWeight.bold)),
+                //                   const SizedBox(height: 4),
+                //                   Text(_certificateInfo, style: const TextStyle(fontSize: 12)),
+                //                 ],
+                //               ),
+                //             ),
+                //           ),
+                //         ],
+                //       ],
+                //     ),
+                //   ),
+                // ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// SSL/TLS Certificate Configuration Section - OPTIMIZED VERSION
+Card(
+  elevation: 4,
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  child: Padding(
+    padding: const EdgeInsets.all(12), // Reduced padding
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.lock, color: Colors.red, size: 20), // Smaller icon
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'SSL/TLS Certificate Configuration',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Smaller font
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        
+        // Enable SSL/TLS toggle
+        CheckboxListTile(
+          title: const Text('Enable SSL/TLS'),
+          subtitle: const Text('Secure connection (ssl://, wss://)'),
+          value: _enableTLS,
+          onChanged: (value) => setState(() {
+            _enableTLS = value ?? false;
+            if (!_enableTLS) {
+              _certificateType = CertificateType.none;
+            }
+          }),
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+        ),
+        
+        if (_enableTLS) ...[
+          const SizedBox(height: 12),
+          
+          // Certificate Type Selection
+          DropdownButtonFormField<CertificateType>(
+            value: _certificateType,
+            decoration: inputDecoration.copyWith(
+              labelText: 'Certificate Type',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), // Reduced padding
+            ),
+            isExpanded: true, // Important: Makes dropdown take full width
+            items: const [
+              DropdownMenuItem(
+                value: CertificateType.caSigned,
+                child: Text('CA Signed Server Certificate', overflow: TextOverflow.ellipsis),
+              ),
+              DropdownMenuItem(
+                value: CertificateType.caOnly,
+                child: Text('CA Certificate Only', overflow: TextOverflow.ellipsis),
+              ),
+              DropdownMenuItem(
+                value: CertificateType.selfSigned,
+                child: Text('Self-Signed Certificate', overflow: TextOverflow.ellipsis),
+              ),
+              DropdownMenuItem(
+                value: CertificateType.mutualTls,
+                child: Text('Mutual TLS', overflow: TextOverflow.ellipsis),
+              ),
+              DropdownMenuItem(
+                value: CertificateType.none,
+                child: Text('Standard SSL/TLS', overflow: TextOverflow.ellipsis),
+              ),
+            ],
+            onChanged: (value) => setState(() => _certificateType = value ?? CertificateType.none),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Backward compatibility option
+          if (_certificateType == CertificateType.none)
+          CheckboxListTile(
+            title: const Text('Allow Self-Signed'),
+            subtitle: const Text('Accept self-signed certificates'),
+            value: _allowSelfSigned,
+            onChanged: (value) => setState(() => _allowSelfSigned = value ?? true),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          
+          // CA Certificate Upload
+          if (_certificateType == CertificateType.caSigned || 
+              _certificateType == CertificateType.caOnly || 
+              _certificateType == CertificateType.mutualTls)
+          ListTile(
+            leading: const Icon(Icons.security, color: Colors.blue, size: 20),
+            title: const Text('CA Certificate', style: TextStyle(fontSize: 14)),
+            subtitle: _caCertificatePath != null 
+                ? Text(path.basename(_caCertificatePath!), style: const TextStyle(fontSize: 12))
+                : const Text('Not selected', style: TextStyle(fontSize: 12)),
+            trailing: SizedBox(
+              width: 80, // Fixed width for buttons
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.upload_file, size: 18),
+                    onPressed: _pickCaCertificate,
+                    padding: EdgeInsets.zero,
+                  ),
+                  if (_caCertificatePath != null)
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 18, color: Colors.red),
+                      onPressed: () => setState(() => _caCertificatePath = null),
+                      padding: EdgeInsets.zero,
                     ),
+                ],
+              ),
+            ),
+            dense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+          ),
+          
+          // Client Certificate Upload (for Mutual TLS)
+          if (_certificateType == CertificateType.mutualTls)
+          Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.badge, color: Colors.green, size: 20),
+                title: const Text('Client Certificate', style: TextStyle(fontSize: 14)),
+                subtitle: _clientCertificatePath != null 
+                    ? Text(path.basename(_clientCertificatePath!), style: const TextStyle(fontSize: 12))
+                    : const Text('Not selected', style: TextStyle(fontSize: 12)),
+                trailing: SizedBox(
+                  width: 80,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.upload_file, size: 18),
+                        onPressed: _pickClientCertificate,
+                        padding: EdgeInsets.zero,
+                      ),
+                      if (_clientCertificatePath != null)
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 18, color: Colors.red),
+                          onPressed: () => setState(() => _clientCertificatePath = null),
+                          padding: EdgeInsets.zero,
+                        ),
+                    ],
                   ),
                 ),
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+              ),
+              
+              ListTile(
+                leading: const Icon(Icons.vpn_key, color: Colors.orange, size: 20),
+                title: const Text('Private Key', style: TextStyle(fontSize: 14)),
+                subtitle: _clientPrivateKeyPath != null 
+                    ? Text(path.basename(_clientPrivateKeyPath!), style: const TextStyle(fontSize: 12))
+                    : const Text('Not selected', style: const TextStyle(fontSize: 12)),
+                trailing: SizedBox(
+                  width: 80,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.upload_file, size: 18),
+                        onPressed: _pickPrivateKey,
+                        padding: EdgeInsets.zero,
+                      ),
+                      if (_clientPrivateKeyPath != null)
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 18, color: Colors.red),
+                          onPressed: () => setState(() => _clientPrivateKeyPath = null),
+                          padding: EdgeInsets.zero,
+                        ),
+                    ],
+                  ),
+                ),
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+              ),
+              
+              if (_clientPrivateKeyPath != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: TextField(
+                  controller: keyPasswordCtrl,
+                  obscureText: true,
+                  decoration: inputDecoration.copyWith(
+                    labelText: 'Key Password (optional)',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    isDense: true,
+                  ),
+                  onChanged: (value) => _clientKeyPassword = value,
+                ),
+              ),
+            ],
+          ),
+          
+          // Verification Options
+          if (_certificateType != CertificateType.selfSigned && _certificateType != CertificateType.none)
+          CheckboxListTile(
+            title: const Text('Verify Certificate', style: TextStyle(fontSize: 14)),
+            subtitle: const Text('Validate certificate chain', style: TextStyle(fontSize: 12)),
+            value: _verifyCertificate,
+            onChanged: (value) => setState(() => _verifyCertificate = value ?? true),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Action Buttons - COMPACT VERSION
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _testCertificateConnection,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                icon: const Icon(Icons.verified, size: 16),
+                label: const Text('TEST', style: TextStyle(fontSize: 12)),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  _logMessage('Certificate Help', 
+                      'Certificate Types:\n'
+                      '1. CA Signed: Validate server with CA cert\n'
+                      '2. CA Only: Trust only specific CA\n'
+                      '3. Self-Signed: Testing only\n'
+                      '4. Mutual TLS: Client + server certs\n'
+                      '5. Standard SSL: System defaults',
+                      isIncoming: false);
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  side: const BorderSide(color: Colors.blue),
+                ),
+                icon: const Icon(Icons.info, size: 16, color: Colors.blue),
+                label: const Text('HELP', style: TextStyle(fontSize: 12, color: Colors.blue)),
+              ),
+              OutlinedButton.icon(
+                onPressed: _clearCertificateFiles,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  side: const BorderSide(color: Colors.red),
+                ),
+                icon: const Icon(Icons.cleaning_services, size: 16, color: Colors.red),
+                label: const Text('CLEAR', style: TextStyle(fontSize: 12, color: Colors.red)),
+              ),
+            ],
+          ),
+          
+          // Certificate Info Display
+          if (_showCertificateInfo && _certificateInfo.isNotEmpty)
+          const SizedBox(height: 8),
+          if (_showCertificateInfo && _certificateInfo.isNotEmpty)
+          Card(
+            color: Colors.green[50],
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('📄 Certificate Info:', 
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 100),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        _certificateInfo, 
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    ),
+  ),
+),
+
 
                 const SizedBox(height: 16),
 
