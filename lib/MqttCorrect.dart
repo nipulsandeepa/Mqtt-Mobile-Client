@@ -4186,7 +4186,7 @@ class _MqttCorrectState extends State<MqttCorrect> {
       
       String info = 'Certificate Information:\n';
       info += '• Path: ${path.basename(certPath)}\n';
-      info += '• Size: ${size} bytes\n';
+      info += '• Size: $size bytes\n';
       info += '• Type: ';
       
       if (content.contains('-----BEGIN CERTIFICATE-----')) {
@@ -5950,7 +5950,7 @@ Valid Until: ${cert.endValidity}
                 
                 // SSL/TLS Certificate Configuration Section
                 Card(
-                  elevation: 4,
+                  elevation: 5,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -5963,7 +5963,7 @@ Valid Until: ${cert.endValidity}
                             SizedBox(width: 8),
                             Text(
                               'SSL/TLS Certificate Configuration',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
