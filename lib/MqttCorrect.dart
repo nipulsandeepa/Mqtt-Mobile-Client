@@ -4316,7 +4316,42 @@ _logMessage('Security', '🔐 Configuring CA Signed context', isIncoming: false)
         // No special certificate configuration
         _logMessage('Security', '🔐 Using default SSL/TLS configuration', isIncoming: false);
         break;
+
+      case CertificateType.caSigned:
+  _logMessage('Security', '=== DEBUG CA SIGNED ===', isIncoming: false);
+  _logMessage('Security', 'CA Path: $_caCertificatePath', isIncoming: false);
+  
+  if (_caCertificatePath != null) {
+    final caFile = File(_caCertificatePath!);
+    final exists = await caFile.exists();
+    _logMessage('Security', 'File exists: $exists', isIncoming: false);
+    
+    if (exists) {
+      try {
+        // Method 1: Try as file path
+        context.setTrustedCertificates(_caCertificatePath!);
+        _logMessage('Security', '✅ setTrustedCertificates() succeeded', isIncoming: false);
+      } catch (e) {
+        _logMessage('Security', '❌ Method 1 failed: $e', isIncoming: false);
+        
+        try {
+          // Method 2: Try as bytes
+          final bytes = await caFile.readAsBytes();
+          context.setTrustedCertificatesBytes(bytes);
+          _logMessage('Security', '✅ setTrustedCertificatesBytes() succeeded', isIncoming: false);
+        } catch (e2) {
+          _logMessage('Security', '❌ Method 2 failed: $e2', isIncoming: false);
+        }
+      }
     }
+  } else {
+    _logMessage('Security', '⚠️ No CA certificate path', isIncoming: false);
+  }
+  break;   
+
+    }
+
+    
     
     return context;
   }
@@ -4855,7 +4890,14 @@ SHA1: ${cert.sha1}
       // Configure SSL/TLS with certificate support
       if (useSSL) {
         client.secure = true;
+
+        // DEBUG: Log what we're doing
+  _logMessage('Security', 'Creating security context for $_certificateType', isIncoming: false);
+        
         client.securityContext = await _createSecurityContext();
+
+          // DEBUG: Check if context was created
+  _logMessage('Security', '✅ Security context created', isIncoming: false);
         
         client.onBadCertificate = (dynamic cert) {
           if (cert is X509Certificate) {
@@ -4868,6 +4910,20 @@ Valid From: ${cert.startValidity}
 Valid Until: ${cert.endValidity}
 ''';
             _logMessage('Security', certInfo, isIncoming: false);
+
+            
+
+    //             // TEMPORARY FIX FOR TESTING: Accept CA Signed despite CN mismatch
+    // if (_certificateType == CertificateType.caSigned) {
+    //   if (cert.issuer.contains('Test CA')) {  // Check if issued by your CA
+    //     _logMessage('Security', 
+    //         '✅ CA Signed: Accepting certificate from our CA\n'
+    //         'Note: CN mismatch (${cert.subject} vs 192.168.43.26)\n'
+    //         'For production, regenerate certificate with correct CN',
+    //         isIncoming: false);
+    //     return true;
+    //   }
+    // }
             
             // Handle different certificate types
             switch (_certificateType) {
@@ -6286,6 +6342,30 @@ Card(
     ),
   ),
 ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                 const SizedBox(height: 16),
