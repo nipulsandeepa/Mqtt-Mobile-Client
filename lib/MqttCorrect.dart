@@ -521,6 +521,11 @@ class _MqttCorrectState extends State<MqttCorrect> {
   final pubTopicCtrl = TextEditingController(text: 'test/topic');
   final payloadCtrl = TextEditingController(text: '{"message":"flutter mqtt"}');
 
+
+
+  // Add this with your other controller variables
+ final ScrollController _scrollController = ScrollController();
+
   // PROFILE MANAGEMENT VARIABLES
   final ProfileHelper _profileHelper = ProfileHelper();
   List<ConnectionProfile> _profiles = [];
@@ -1668,6 +1673,9 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
     }
   }
 
+
+
+
   // LOG MESSAGE WITH MEMORY LIMIT
   void _logMessage(String topic, String message, {bool isIncoming = true, int qos = 0}) async {
     if (_messages.length >= _maxMessages) {
@@ -1693,7 +1701,25 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
     } catch (e) {
       print('Database save error: $e');
     }
+
+    // ========== ADD THIS AT THE END ==========
+
+  // Auto-scroll to show new message
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  });
   }
+
+
+
+
+
 
   // Enhanced clear messages that also clears database
   void _clearMessages() async {
@@ -1786,81 +1812,6 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
 
 
 
-// Export Profiles & Templates - SIMPLE WORKING VERSION
-// Future<void> _exportProfilesAndTemplates() async {
-//   try {
-//     _logMessage('System', '📤 Exporting profiles and templates...', isIncoming: false);
-    
-//     final profilesJson = await _profileHelper.exportProfilesToJson();
-//     final templatesJson = await _templateHelper.exportTemplatesToJson();
-    
-//     final exportData = {
-//       'profiles': jsonDecode(profilesJson),
-//       'templates': jsonDecode(templatesJson),
-//       'exportDate': DateTime.now().toIso8601String(),
-//       'appVersion': 'MQTT Mobile App v1.0',
-//       'totalProfiles': _profiles.length,
-//       'totalTemplates': _templates.length,
-//     };
-    
-//     final String jsonString = jsonEncode(exportData);
-    
-//     // Get downloads directory
-//     final downloadsDir = await getDownloadsDirectory();
-//     if (downloadsDir == null) {
-//       _logMessage('System', '❌ Cannot access downloads directory', isIncoming: false);
-//       _logMessage('System', '💡 Please check app storage permissions in Settings', isIncoming: false);
-//       return;
-//     }
-    
-//     final timestamp = DateTime.now().millisecondsSinceEpoch;
-//     final formattedTime = DateTime.now().toString().replaceAll(RegExp(r'[:\-\. ]'), '_');
-//     final fileName = 'mqtt_backup_$formattedTime.json';
-//     final exportPath = path.join(downloadsDir.path, fileName);
-    
-//     // Write the file
-//     await File(exportPath).writeAsString(jsonString);
-    
-//     // Verify file was created
-//     final file = File(exportPath);
-//     final exists = await file.exists();
-    
-//     if (exists) {
-//       final fileSize = await file.length();
-//       final readableSize = _formatFileSize(fileSize);
-      
-//       // Show detailed success message in the log
-//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-//       _logMessage('System', '✅ ✅ ✅ BACKUP SUCCESSFULLY CREATED! ✅ ✅ ✅', isIncoming: false);
-//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-//       _logMessage('System', '📁 FILE NAME: $fileName', isIncoming: false);
-//       _logMessage('System', '📊 FILE SIZE: $readableSize', isIncoming: false);
-//       _logMessage('System', '👤 PROFILES: ${_profiles.length}', isIncoming: false);
-//       _logMessage('System', '📋 TEMPLATES: ${_templates.length}', isIncoming: false);
-//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-//       _logMessage('System', '📍 FULL PATH:', isIncoming: false);
-//       _logMessage('System', exportPath, isIncoming: false);
-//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-//       _logMessage('System', '🔍 HOW TO FIND THE FILE:', isIncoming: false);
-//       _logMessage('System', '1. Open FILE MANAGER app', isIncoming: false);
-//       _logMessage('System', '2. Go to INTERNAL STORAGE', isIncoming: false);
-//       _logMessage('System', '3. Open DOWNLOADS folder', isIncoming: false);
-//       _logMessage('System', '4. Look for: $fileName', isIncoming: false);
-//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-      
-//     } else {
-//       _logMessage('System', '❌ File creation failed - file does not exist', isIncoming: false);
-//     }
-    
-//   } catch (e) {
-//     _logMessage('System', '❌ Export error: $e', isIncoming: false);
-//     _logMessage('System', '💡 Troubleshooting steps:', isIncoming: false);
-//     _logMessage('System', '1. Go to Settings → Apps → MQTT App → Permissions', isIncoming: false);
-//     _logMessage('System', '2. Enable STORAGE permission', isIncoming: false);
-//     _logMessage('System', '3. Try again', isIncoming: false);
-//   }
-// }
-
 Future<void> _exportProfilesAndTemplates() async {
   try {
     _logMessage('System', '📤 Starting export...', isIncoming: false);
@@ -1937,189 +1888,6 @@ Future<void> _clearDatabaseBeforeImport() async {
     _logMessage('Import', '⚠️ Error clearing database: $e', isIncoming: false);
   }
 }
-
-
-
-// Import Profiles & Templates from JSON file - FIXED FOR BOTH ARRAY AND OBJECT
-// Future<void> _importProfilesAndTemplates() async {
-// // Add this line BEFORE the import loops:
-     
-//   try {
-    
-//     await _clearDatabaseBeforeImport();
-//     _logMessage('System', '📥 Starting import process...', isIncoming: false);
-    
-//     // Pick JSON file
-//     FilePickerResult? result = await FilePicker.platform.pickFiles(
-//       type: FileType.any,
-//       allowMultiple: false,
-//     );
-    
-//     if (result == null || result.files.single.path == null) {
-//       _logMessage('System', '❌ No file selected', isIncoming: false);
-//       return;
-//     }
-    
-//     final filePath = result.files.single.path!;
-//     final fileName = result.files.single.name;
-    
-//     // Check if it's a JSON file by extension
-//     if (!fileName.toLowerCase().endsWith('.json')) {
-//       _logMessage('System', '❌ Selected file is not a JSON file: $fileName', isIncoming: false);
-//       _logMessage('System', '💡 Please select a .json backup file', isIncoming: false);
-//       return;
-//     }
-    
-//     final file = File(filePath);
-//     final content = await file.readAsString();
-    
-//     _logMessage('System', '📥 Importing from: $fileName', isIncoming: false);
-    
-//     // Parse JSON
-//     Map<String, dynamic> data;
-//     try {
-//       data = jsonDecode(content);
-//     } catch (e) {
-//       _logMessage('System', '❌ Invalid JSON file: $e', isIncoming: false);
-//       _logMessage('System', '💡 The file may be corrupted or in wrong format', isIncoming: false);
-//       return;
-//     }
-    
-//     // FIXED: Handle both array and object structures
-//     List<dynamic> profilesList = [];
-//     List<dynamic> templatesList = [];
-    
-//     if (data.containsKey('profiles')) {
-//       if (data['profiles'] is List) {
-//         profilesList = data['profiles'];
-//       } else if (data['profiles'] is Map) {
-//         // Convert map to list
-//         profilesList = (data['profiles'] as Map).values.toList();
-//       }
-//     }
-    
-//     if (data.containsKey('templates')) {
-//       if (data['templates'] is List) {
-//         templatesList = data['templates'];
-//       } else if (data['templates'] is Map) {
-//         // Convert map to list
-//         templatesList = (data['templates'] as Map).values.toList();
-//       }
-//     }
-    
-//     // Validate backup file structure
-//     if (profilesList.isEmpty && templatesList.isEmpty) {
-//       _logMessage('System', '❌ Invalid backup file format', isIncoming: false);
-//       _logMessage('System', '💡 No profiles or templates found in file', isIncoming: false);
-//       return;
-//     }
-    
-//     // Show confirmation dialog
-//     final bool? confirm = await showDialog<bool>(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         title: const Text('Import Backup'),
-//         content: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text('File: $fileName'),
-//             const SizedBox(height: 12),
-//             const Text('This will import:'),
-//             Text('• ${profilesList.length} profile(s)'),
-//             Text('• ${templatesList.length} template(s)'),
-//             const SizedBox(height: 12),
-//             const Text('Existing data will be preserved.'),
-//             const SizedBox(height: 8),
-//             const Text('Continue?', style: TextStyle(fontWeight: FontWeight.bold)),
-//           ],
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context, false),
-//             child: const Text('Cancel'),
-//           ),
-//           TextButton(
-//             onPressed: () => Navigator.pop(context, true),
-//             child: const Text('Import'),
-//           ),
-//         ],
-//       ),
-//     );
-    
-//     if (confirm != true) {
-//       _logMessage('System', '❌ Import cancelled by user', isIncoming: false);
-//       return;
-//     }
-    
-//     _logMessage('System', '🔄 Starting import process...', isIncoming: false);
-    
-//     // Import profiles
-//     int profileCount = 0;
-//     int profileErrors = 0;
-    
-//     for (final profileData in profilesList) {
-//       try {
-//         if (profileData is Map<String, dynamic>) {
-//           final profile = ConnectionProfile.fromMap(profileData);
-//           await _profileHelper.insertProfile(profile);
-//           profileCount++;
-//         } else if (profileData is Map) {
-//           final profile = ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
-//           await _profileHelper.insertProfile(profile);
-//           profileCount++;
-//         }
-//       } catch (e) {
-//         profileErrors++;
-//         _logMessage('System', '⚠️ Failed to import profile #$profileErrors: $e', isIncoming: false);
-//       }
-//     }
-    
-//     // Import templates
-//     int templateCount = 0;
-//     int templateErrors = 0;
-    
-//     for (final templateData in templatesList) {
-//       try {
-//         if (templateData is Map<String, dynamic>) {
-//           final template = MessageTemplate.fromMap(templateData);
-//           await _templateHelper.insertTemplate(template);
-//           templateCount++;
-//         } else if (templateData is Map) {
-//           final template = MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
-//           await _templateHelper.insertTemplate(template);
-//           templateCount++;
-//         }
-//       } catch (e) {
-//         templateErrors++;
-//         _logMessage('System', '⚠️ Failed to import template #$templateErrors: $e', isIncoming: false);
-//       }
-//     }
-    
-//     // Refresh data
-//     await _initializeProfiles();
-//     await _initializeTemplates();
-    
-//     // Show import summary
-//     _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-//     _logMessage('System', '✅ IMPORT COMPLETED SUCCESSFULLY! ✅', isIncoming: false);
-//     _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-//     _logMessage('System', '📊 IMPORT SUMMARY:', isIncoming: false);
-//     _logMessage('System', '• Profiles imported: $profileCount/${profilesList.length}', isIncoming: false);
-//     _logMessage('System', '• Templates imported: $templateCount/${templatesList.length}', isIncoming: false);
-//     if (profileErrors > 0 || templateErrors > 0) {
-//       _logMessage('System', '• Errors: $profileErrors profile(s), $templateErrors template(s)', isIncoming: false);
-//     }
-//     _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-//     _logMessage('System', '💡 You can now use the imported connections', isIncoming: false);
-//     _logMessage('System', '   in the "Connection Profiles" section', isIncoming: false);
-    
-//   } catch (e) {
-//     _logMessage('System', '❌ Import error: $e', isIncoming: false);
-//     _logMessage('System', '💡 Please make sure you selected a valid backup file', isIncoming: false);
-//   }
-// }
-
 
 
 
@@ -3476,6 +3244,8 @@ Future<void> _deleteAllProfiles() async {
 
   @override
   void dispose() {
+
+    _scrollController.dispose();  // ← ADD THIS LINE
     _reconnectTimer?.cancel();
     _connectionHealthTimer?.cancel();
     _uptimeTimer?.cancel();
@@ -3580,7 +3350,11 @@ Future<void> _deleteAllProfiles() async {
     ),
           ],
         ),
-        body: Padding(
+        body: Stack(
+
+          children: [
+
+                    Padding(
           padding: const EdgeInsets.all(16),
           child: SingleChildScrollView(
             child: Column(
@@ -3794,25 +3568,6 @@ Future<void> _deleteAllProfiles() async {
                               spacing: 8,
                               runSpacing: 8,
 
-                              // children: _templates.map((template) => ActionChip(
-                              //   avatar: _currentTemplate?.id == template.id 
-                              //       ? const Icon(Icons.check, size: 16, color: Colors.white)
-                              //       : const Icon(Icons.description, size: 16),
-                              //   label: Text(template.name),
-                              //   backgroundColor: _currentTemplate?.id == template.id 
-                              //       ? Colors.purple 
-                              //       : Colors.purple.shade100,
-                              //   labelStyle: TextStyle(
-                              //     color: _currentTemplate?.id == template.id 
-                              //         ? Colors.white 
-                              //         : Colors.purple,
-                              //     fontWeight: FontWeight.w500,
-                              //   ),
-                              //   onPressed: () => _loadTemplate(template),
-                              // )).toList(),
-
-
-
                                  children: _templates.map((template) => GestureDetector(
     onLongPress: () => _showRenameTemplateDialog(template),
     child: ActionChip(
@@ -4023,307 +3778,6 @@ Future<void> _deleteAllProfiles() async {
 
                 const SizedBox(height: 16),
                 
-
-
-// SSL/TLS Certificate Configuration Section - OPTIMIZED VERSION
-// Card(
-//   elevation: 4,
-//   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//   child: Padding(
-//     padding: const EdgeInsets.all(12), // Reduced padding
-//     child: Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         const Row(
-//           children: [
-//             Icon(Icons.lock, color: Colors.red, size: 20), // Smaller icon
-//             SizedBox(width: 8),
-//             Expanded(
-//               child: Text(
-//                 'SSL/TLS Certificate Configuration',
-//                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Smaller font
-//                 overflow: TextOverflow.ellipsis,
-//               ),
-//             ),
-//           ],
-//         ),
-//         const SizedBox(height: 12),
-        
-//         // Enable SSL/TLS toggle
-//         CheckboxListTile(
-//           title: const Text('Enable SSL/TLS'),
-//           subtitle: const Text('Secure connection (ssl://, wss://)'),
-//           value: _enableTLS,
-//           onChanged: (value) => setState(() {
-//             _enableTLS = value ?? false;
-//             if (!_enableTLS) {
-//               _certificateType = CertificateType.none;
-//             }
-//           }),
-//           dense: true,
-//           contentPadding: EdgeInsets.zero,
-//           controlAffinity: ListTileControlAffinity.leading,
-//         ),
-        
-//         if (_enableTLS) ...[
-//           const SizedBox(height: 12),
-          
-//           // Certificate Type Selection
-//           DropdownButtonFormField<CertificateType>(
-//             value: _certificateType,
-//             decoration: inputDecoration.copyWith(
-//               labelText: 'Certificate Type',
-//               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), // Reduced padding
-//             ),
-//             isExpanded: true, // Important: Makes dropdown take full width
-//             items: const [
-//               DropdownMenuItem(
-//                 value: CertificateType.caSigned,
-//                 child: Text('CA Signed Server Certificate', overflow: TextOverflow.ellipsis),
-//               ),
-//               DropdownMenuItem(
-//                 value: CertificateType.caOnly,
-//                 child: Text('CA Certificate Only', overflow: TextOverflow.ellipsis),
-//               ),
-//               DropdownMenuItem(
-//                 value: CertificateType.selfSigned,
-//                 child: Text('Self-Signed Certificate', overflow: TextOverflow.ellipsis),
-//               ),
-//               DropdownMenuItem(
-//                 value: CertificateType.mutualTls,
-//                 child: Text('Mutual TLS', overflow: TextOverflow.ellipsis),
-//               ),
-//               DropdownMenuItem(
-//                 value: CertificateType.none,
-//                 child: Text('Standard SSL/TLS', overflow: TextOverflow.ellipsis),
-//               ),
-//             ],
-//             onChanged: (value) => setState(() => _certificateType = value ?? CertificateType.none),
-//           ),
-          
-//           const SizedBox(height: 8),
-          
-//           // Backward compatibility option
-//           if (_certificateType == CertificateType.none)
-//           CheckboxListTile(
-//             title: const Text('Allow Self-Signed'),
-//             subtitle: const Text('Accept self-signed certificates'),
-//             value: _allowSelfSigned,
-//             onChanged: (value) => setState(() => _allowSelfSigned = value ?? true),
-//             dense: true,
-//             contentPadding: EdgeInsets.zero,
-//             controlAffinity: ListTileControlAffinity.leading,
-//           ),
-          
-//           // CA Certificate Upload
-//           if (_certificateType == CertificateType.caSigned || 
-//               _certificateType == CertificateType.caOnly || 
-//               _certificateType == CertificateType.mutualTls)
-//           ListTile(
-//             leading: const Icon(Icons.security, color: Colors.blue, size: 20),
-//             title: const Text('CA Certificate', style: TextStyle(fontSize: 14)),
-//             subtitle: _caCertificatePath != null 
-//                 ? Text(path.basename(_caCertificatePath!), style: const TextStyle(fontSize: 12))
-//                 : const Text('Not selected', style: TextStyle(fontSize: 12)),
-//             trailing: SizedBox(
-//               width: 80, // Fixed width for buttons
-//               child: Row(
-//                 children: [
-//                   IconButton(
-//                     icon: const Icon(Icons.upload_file, size: 18),
-//                     onPressed: _pickCaCertificate,
-//                     padding: EdgeInsets.zero,
-//                   ),
-//                   if (_caCertificatePath != null)
-//                     IconButton(
-//                       icon: const Icon(Icons.close, size: 18, color: Colors.red),
-//                       onPressed: () => setState(() => _caCertificatePath = null),
-//                       padding: EdgeInsets.zero,
-//                     ),
-//                 ],
-//               ),
-//             ),
-//             dense: true,
-//             contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-//           ),
-          
-//           // Client Certificate Upload (for Mutual TLS)
-//           if (_certificateType == CertificateType.mutualTls)
-//           Column(
-//             children: [
-//               ListTile(
-//                 leading: const Icon(Icons.badge, color: Colors.green, size: 20),
-//                 title: const Text('Client Certificate', style: TextStyle(fontSize: 14)),
-//                 subtitle: _clientCertificatePath != null 
-//                     ? Text(path.basename(_clientCertificatePath!), style: const TextStyle(fontSize: 12))
-//                     : const Text('Not selected', style: TextStyle(fontSize: 12)),
-//                 trailing: SizedBox(
-//                   width: 80,
-//                   child: Row(
-//                     children: [
-//                       IconButton(
-//                         icon: const Icon(Icons.upload_file, size: 18),
-//                         onPressed: _pickClientCertificate,
-//                         padding: EdgeInsets.zero,
-//                       ),
-//                       if (_clientCertificatePath != null)
-//                         IconButton(
-//                           icon: const Icon(Icons.close, size: 18, color: Colors.red),
-//                           onPressed: () => setState(() => _clientCertificatePath = null),
-//                           padding: EdgeInsets.zero,
-//                         ),
-//                     ],
-//                   ),
-//                 ),
-//                 dense: true,
-//                 contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-//               ),
-              
-//               ListTile(
-//                 leading: const Icon(Icons.vpn_key, color: Colors.orange, size: 20),
-//                 title: const Text('Private Key', style: TextStyle(fontSize: 14)),
-//                 subtitle: _clientPrivateKeyPath != null 
-//                     ? Text(path.basename(_clientPrivateKeyPath!), style: const TextStyle(fontSize: 12))
-//                     : const Text('Not selected', style: TextStyle(fontSize: 12)),
-//                 trailing: SizedBox(
-//                   width: 80,
-//                   child: Row(
-//                     children: [
-//                       IconButton(
-//                         icon: const Icon(Icons.upload_file, size: 18),
-//                         onPressed: _pickPrivateKey,
-//                         padding: EdgeInsets.zero,
-//                       ),
-//                       if (_clientPrivateKeyPath != null)
-//                         IconButton(
-//                           icon: const Icon(Icons.close, size: 18, color: Colors.red),
-//                           onPressed: () => setState(() => _clientPrivateKeyPath = null),
-//                           padding: EdgeInsets.zero,
-//                         ),
-//                     ],
-//                   ),
-//                 ),
-//                 dense: true,
-//                 contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-//               ),
-              
-//               if (_clientPrivateKeyPath != null)
-//               Padding(
-//                 padding: const EdgeInsets.symmetric(vertical: 4),
-//                 child: TextField(
-//                   controller: keyPasswordCtrl,
-//                   obscureText: true,
-//                   decoration: inputDecoration.copyWith(
-//                     labelText: 'Key Password (optional)',
-//                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-//                     isDense: true,
-//                   ),
-//                   onChanged: (value) => _clientKeyPassword = value,
-//                 ),
-//               ),
-//             ],
-//           ),
-          
-//           // Verification Options
-//           if (_certificateType != CertificateType.selfSigned && _certificateType != CertificateType.none)
-//           CheckboxListTile(
-//             title: const Text('Verify Certificate', style: TextStyle(fontSize: 14)),
-//             subtitle: const Text('Validate certificate chain', style: TextStyle(fontSize: 12)),
-//             value: _verifyCertificate,
-//             onChanged: (value) => setState(() => _verifyCertificate = value ?? true),
-//             dense: true,
-//             contentPadding: EdgeInsets.zero,
-//             controlAffinity: ListTileControlAffinity.leading,
-//           ),
-          
-//           const SizedBox(height: 12),
-          
-//           // Action Buttons - COMPACT VERSION
-//           Wrap(
-//             spacing: 8,
-//             runSpacing: 8,
-//             alignment: WrapAlignment.center,
-//             children: [
-//               ElevatedButton.icon(
-//                 onPressed: _testCertificateConnection,
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: Colors.blue,
-//                   foregroundColor: Colors.white,
-//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-//                 ),
-//                 icon: const Icon(Icons.verified, size: 16),
-//                 label: const Text('TEST', style: TextStyle(fontSize: 12)),
-//               ),
-//               OutlinedButton.icon(
-//                 onPressed: () {
-//                   _logMessage('Certificate Help', 
-//                       'Certificate Types:\n'
-//                       '1. CA Signed: Validate server with CA cert\n'
-//                       '2. CA Only: Trust only specific CA\n'
-//                       '3. Self-Signed: Testing only\n'
-//                       '4. Mutual TLS: Client + server certs\n'
-//                       '5. Standard SSL: System defaults',
-//                       isIncoming: false);
-//                 },
-//                 style: OutlinedButton.styleFrom(
-//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-//                   side: const BorderSide(color: Colors.blue),
-//                 ),
-//                 icon: const Icon(Icons.info, size: 16, color: Colors.blue),
-//                 label: const Text('HELP', style: TextStyle(fontSize: 12, color: Colors.blue)),
-//               ),
-//               OutlinedButton.icon(
-//                 onPressed: _clearCertificateFiles,
-//                 style: OutlinedButton.styleFrom(
-//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-//                   side: const BorderSide(color: Colors.red),
-//                 ),
-//                 icon: const Icon(Icons.cleaning_services, size: 16, color: Colors.red),
-//                 label: const Text('CLEAR', style: TextStyle(fontSize: 12, color: Colors.red)),
-//               ),
-//             ],
-//           ),
-          
-//           // Certificate Info Display
-//           if (_showCertificateInfo && _certificateInfo.isNotEmpty)
-//           const SizedBox(height: 8),
-//           if (_showCertificateInfo && _certificateInfo.isNotEmpty)
-//           Card(
-//             color: Colors.green[50],
-//             child: Padding(
-//               padding: const EdgeInsets.all(6),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   const Text('📄 Certificate Info:', 
-//                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-//                   const SizedBox(height: 4),
-//                   Container(
-//                     constraints: const BoxConstraints(maxHeight: 100),
-//                     child: SingleChildScrollView(
-//                       child: Text(
-//                         _certificateInfo, 
-//                         style: const TextStyle(fontSize: 11),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ],
-//       ],
-//     ),
-//   ),
-// ),
-
-
-
-
-
-
-
-
 
 // SSL/TLS Certificate Configuration Section - FILE NAME FIX
 Card(
@@ -4697,40 +4151,6 @@ Card(
     ),
   ),
 ),
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                 const SizedBox(height: 16),
@@ -5327,10 +4747,87 @@ Card(
                           ],
                         ),
                         const SizedBox(height: 16),
-                        TextField(
-                          controller: pubTopicCtrl,
-                          decoration: inputDecoration.copyWith(labelText: 'Topic to publish'),
-                        ),
+
+
+
+
+                         // ========== ADD THIS SECTION ==========
+        if (_subscriptions.isNotEmpty) ...[
+          const Text(
+            'Quick Select from Subscriptions:',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _subscriptions.map((sub) => FilterChip(
+              label: Text(
+                sub.topic,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: pubTopicCtrl.text == sub.topic ? Colors.white : null,
+                ),
+              ),
+              selected: pubTopicCtrl.text == sub.topic,
+              onSelected: (selected) {
+                setState(() {
+                  pubTopicCtrl.text = sub.topic;
+                });
+              },
+              backgroundColor: pubTopicCtrl.text == sub.topic 
+                  ? Colors.purple 
+                  : Colors.grey[200],
+              selectedColor: Colors.purple,
+              checkmarkColor: Colors.white,
+            )).toList(),
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 12),
+        ],
+        // ========== END OF ADDED SECTION ==========
+
+
+
+
+
+                        // TextField(
+                        //   controller: pubTopicCtrl,
+                        //   decoration: inputDecoration.copyWith(labelText: 'Topic to publish'),
+                        // ),
+
+
+
+
+
+      TextField(
+          controller: pubTopicCtrl,
+          decoration: inputDecoration.copyWith(
+            labelText: 'Topic to publish',
+            // Add dropdown arrow if there are subscriptions
+            suffixIcon: _subscriptions.isNotEmpty
+                ? PopupMenuButton<String>(
+                    icon: Icon(Icons.arrow_drop_down, color: Colors.purple),
+                    itemBuilder: (context) {
+                      return _subscriptions.map((sub) {
+                        return PopupMenuItem(
+                          value: sub.topic,
+                          child: Text(sub.topic),
+                        );
+                      }).toList();
+                    },
+                    onSelected: (topic) {
+                      setState(() {
+                        pubTopicCtrl.text = topic;
+                      });
+                    },
+                  )
+                : null,
+          ),
+                            ),
+
+
                         const SizedBox(height: 12),
                         TextField(
                           controller: payloadCtrl,
@@ -5492,51 +4989,36 @@ Card(
                                     ],
                                   ),
                                 )
+
+
+                              // : ListView.builder(
+                              //     reverse: true,
+                              //     itemCount: _filteredMessages.length,
+                              //     itemBuilder: (context, index) {
+                              //       final message = _filteredMessages[index];
+                              //       return MessageItem(message: message);
+                              //     },
+                              //   ),
+
                               : ListView.builder(
-                                  reverse: true,
-                                  itemCount: _filteredMessages.length,
-                                  itemBuilder: (context, index) {
-                                    final message = _filteredMessages[index];
-                                    return MessageItem(message: message);
-                                  },
-                                ),
+                                      reverse: true,
+                                      controller: _scrollController,  // ← ADD THIS LINE
+                                      itemCount: _filteredMessages.length,
+                                      itemBuilder: (context, index) {
+                                      final message = _filteredMessages[index];
+                                      return MessageItem(message: message);
+                                      },
+                                      ),
+
+
+
                         ),
                       ],
                     ),
                   ),
                 ),
 
-                // Export Profiles & Templates Button
-                // const SizedBox(height: 16),
-                // Card(
-                //   elevation: 2,
-                //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                //   child: Padding(
-                //     padding: const EdgeInsets.all(12),
-                //     child: Column(
-                //       children: [
-                //         const Text(
-                //           'Backup & Restore',
-                //           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                //         ),
-                //         const SizedBox(height: 8),
-                //         SizedBox(
-                //           width: double.infinity,
-                //           child: OutlinedButton.icon(
-                //             onPressed: _exportProfilesAndTemplates,
-                //             style: OutlinedButton.styleFrom(
-                //               foregroundColor: Colors.green,
-                //               side: const BorderSide(color: Colors.green),
-                //             ),
-                //             icon: const Icon(Icons.backup, size: 16),
-                //             label: const Text('EXPORT PROFILES & TEMPLATES'),
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //   ),
-                // ),
-
+             
                 const SizedBox(height: 16),
 
                 // Backup & Restore Card - UPDATED
@@ -5603,10 +5085,1746 @@ Card(
             ),
           ),
         ),
+
+   // Scroll to top button (shows when scrolled down)
+    Positioned(
+      bottom: 20,
+      right: 20,
+      child: FloatingActionButton.small(
+        onPressed: () {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        },
+        tooltip: 'Scroll to newest messages',
+        child: const Icon(Icons.arrow_upward),
+      ),
+    ),
+
+          ],
+        )
+
+
+
+
+
+
+
+
+
+//         Padding(
+//           padding: const EdgeInsets.all(16),
+//           child: SingleChildScrollView(
+//             child: Column(
+//               children: [
+//                 const SizedBox(height: 16),
+                
+//                 Container(
+//                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//                   decoration: BoxDecoration(
+//                     color: _getConnectionStateColor().withOpacity(0.1),
+//                     borderRadius: BorderRadius.circular(8),
+//                     border: Border.all(color: _getConnectionStateColor()),
+//                   ),
+//                   child: Row(
+//                     children: [
+//                       Icon(
+//                         _connectionState == ConnectionState.connected 
+//                             ? Icons.wifi 
+//                             : Icons.wifi_off,
+//                         color: _getConnectionStateColor(),
+//                       ),
+//                       const SizedBox(width: 8),
+//                       Expanded(
+//                         child: Text(
+//                           _getConnectionStateText(),
+//                           style: TextStyle(
+//                             fontWeight: FontWeight.bold,
+//                             color: _getConnectionStateColor(),
+//                           ),
+//                         ),
+//                       ),
+//                       if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
+//                         IconButton(
+//                           icon: const Icon(Icons.refresh, size: 20),
+//                           onPressed: _forceReconnect,
+//                           tooltip: 'Reconnect',
+//                           padding: EdgeInsets.zero,
+//                           visualDensity: VisualDensity.compact,
+//                         ),
+//                     ],
+//                   ),
+//                 ),
+                
+//                 const SizedBox(height: 16),
+                
+//                 _buildConnectionStats(),
+                
+//                 const SizedBox(height: 16),
+                
+//                 // Quick Test Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         const Row(
+//                           children: [
+//                             Icon(Icons.bolt, color: Colors.amber),
+//                             SizedBox(width: 8),
+//                             Text(
+//                               'Quick Test',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Test with popular public brokers',
+//                           style: TextStyle(fontSize: 12, color: Colors.grey),
+//                         ),
+//                         const SizedBox(height: 12),
+//                         Wrap(
+//                           spacing: 8,
+//                           runSpacing: 8,
+//                           children: [
+
+                               
+
+//                                ActionChip(
+//   avatar: const Icon(Icons.warning_amber, size: 16),
+//   label: const Text('EMQX 1884 (Test)'),
+//   backgroundColor: Colors.orange.shade100,
+//   labelStyle: const TextStyle(color: Colors.orange),
+//   onPressed: () {
+//     urlCtrl.text = 'tcp://broker.emqx.io:1884';
+//     _enableAuth = true;
+//     usernameCtrl.text = 'emqx_test';
+//     passwordCtrl.text = 'emqx_test';
+//     _logMessage('Test', 
+//         '⚠️ Testing EMQX port 1884\n'
+//         'Note: This port may not work as EMQX changes configurations.\n'
+//         'This demonstrates how SOME brokers use port 1884 for auth.',
+//         isIncoming: false);
+//   },
+// ),
+
+
+
+//                             ActionChip(
+//                               avatar: const Icon(Icons.play_arrow, size: 16),
+//                               label: const Text('Mosquitto TCP'),
+//                               backgroundColor: Colors.amber.shade100,
+//                               labelStyle: const TextStyle(color: Colors.amber),
+//                               onPressed: () {
+//                                 urlCtrl.text = 'tcp://test.mosquitto.org:1883';
+//                                 _enableTLS = false;
+//                                 _certificateType = CertificateType.none;
+//                                 _logMessage('Test', 'Set to Mosquitto TCP broker', isIncoming: false);
+//                               },
+//                             ),
+//                             ActionChip(
+//                               avatar: const Icon(Icons.play_arrow, size: 16),
+//                               label: const Text('Mosquitto WS'),
+//                               backgroundColor: Colors.amber.shade100,
+//                               labelStyle: const TextStyle(color: Colors.amber),
+//                               onPressed: () {
+//                                 urlCtrl.text = 'ws://test.mosquitto.org:8883';
+//                                 _enableTLS = false;
+//                                 _certificateType = CertificateType.none;
+//                                 _logMessage('Test', 'Set to Mosquitto WebSocket broker', isIncoming: false);
+//                               },
+//                             ),
+//                             ActionChip(
+//                               avatar: const Icon(Icons.play_arrow, size: 16),
+//                               label: const Text('EMQX TCP'),
+//                               backgroundColor: Colors.amber.shade100,
+//                               labelStyle: const TextStyle(color: Colors.amber),
+//                               onPressed: () {
+//                                 urlCtrl.text = 'tcp://broker.emqx.io:1883';
+//                                 _enableTLS = false;
+//                                 _certificateType = CertificateType.none;
+//                                 _logMessage('Test', 'Set to EMQX TCP broker', isIncoming: false);
+//                               },
+//                             ),
+//                             ActionChip(
+//                               avatar: const Icon(Icons.play_arrow, size: 16),
+//                               label: const Text('EMQX WS'),
+//                               backgroundColor: Colors.amber.shade100,
+//                               labelStyle: const TextStyle(color: Colors.amber),
+//                               onPressed: () {
+//                                 urlCtrl.text = 'ws://broker.emqx.io:8883';
+//                                 _enableTLS = false;
+//                                 _certificateType = CertificateType.none;
+//                                 _logMessage('Test', 'Set to EMQX WebSocket broker', isIncoming: false);
+//                               },
+//                             ),
+//                             ActionChip(
+//                               avatar: const Icon(Icons.lock, size: 16),
+//                               label: const Text('SSL Test'),
+//                               backgroundColor: Colors.amber.shade100,
+//                               labelStyle: const TextStyle(color: Colors.amber),
+//                               onPressed: () {
+//                                 urlCtrl.text = 'ssl://broker.emqx.io:8883';
+//                                 _enableTLS = true;
+//                                 _certificateType = CertificateType.selfSigned;
+//                                 _logMessage('Test', 'Set to EMQX SSL broker with self-signed certificates', isIncoming: false);
+//                               },
+//                             ),
+
+//                           ],
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+                
+//                 // Templates Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Row(
+//                           children: [
+//                             const Icon(Icons.content_copy, color: Colors.purple),
+//                             const SizedBox(width: 8),
+//                             const Text(
+//                               'Message Templates',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                             const Spacer(),
+//                             IconButton(
+//                               icon: Icon(
+//                                 _showTemplates ? Icons.expand_less : Icons.expand_more,
+//                                 color: Colors.purple,
+//                               ),
+//                               onPressed: () => setState(() => _showTemplates = !_showTemplates),
+//                               tooltip: _showTemplates ? 'Hide Templates' : 'Show Templates',
+//                             ),
+//                           ],
+//                         ),
+//                         if (_showTemplates) ...[
+//                           const SizedBox(height: 12),
+//                           if (_templates.isEmpty) 
+//                             const Text('No templates saved. Create your first one!'),
+//                           if (_templates.isNotEmpty) ...[
+//                             const Text(
+//                               'Quick Load:',
+//                               style: TextStyle(fontWeight: FontWeight.bold),
+//                             ),
+//                             const SizedBox(height: 8),
+//                             Wrap(
+//                               spacing: 8,
+//                               runSpacing: 8,
+
+//                                  children: _templates.map((template) => GestureDetector(
+//     onLongPress: () => _showRenameTemplateDialog(template),
+//     child: ActionChip(
+//       avatar: _currentTemplate?.id == template.id 
+//           ? const Icon(Icons.check, size: 16, color: Colors.white)
+//           : const Icon(Icons.description, size: 16),
+//       label: Text(template.name),
+//       backgroundColor: _currentTemplate?.id == template.id 
+//           ? Colors.purple 
+//           : Colors.purple.shade100,
+//       labelStyle: TextStyle(
+//         color: _currentTemplate?.id == template.id 
+//             ? Colors.white 
+//             : Colors.purple,
+//         fontWeight: FontWeight.w500,
+//       ),
+//       onPressed: () => _loadTemplate(template),
+//     ),
+//   )).toList(),
+
+
+//                             ),
+//                             const SizedBox(height: 12),
+//                           ],
+//                           const Divider(),
+//                           const SizedBox(height: 8),
+//                           Row(
+//                             children: [
+//                               Expanded(
+//                                 child: ElevatedButton.icon(
+//                                   onPressed: _saveCurrentAsTemplate,
+//                                   style: ElevatedButton.styleFrom(
+//                                     backgroundColor: Colors.purple,
+//                                     foregroundColor: Colors.white,
+//                                     padding: const EdgeInsets.symmetric(vertical: 12),
+//                                   ),
+//                                   icon: const Icon(Icons.save, size: 18),
+//                                   label: const Text('Save Current as Template'),
+//                                 ),
+//                               ),
+//                               const SizedBox(width: 8),
+//                               if (_currentTemplate != null) ...[
+//                                  IconButton(
+//                                      icon: const Icon(Icons.edit, color: Colors.blue),
+//                                      onPressed: () => _showRenameTemplateDialog(_currentTemplate!),
+//                                      tooltip: 'Rename Current Template',
+//                                    ),
+
+//                                 IconButton(
+//                                   icon: const Icon(Icons.delete, color: Colors.red),
+//                                   onPressed: () => _deleteTemplate(_currentTemplate!),
+//                                   tooltip: 'Delete Current Template',
+//                                 ),
+//                               ],
+//                             ],
+//                           ),
+//                         ],
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+                
+//                 // Profiles Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+                    
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Row(
+//                           children: [
+//                             const Icon(Icons.bookmark, color: Colors.purple),
+//                             const SizedBox(width: 8),
+//                             const Text(
+//                               'Connection Profiles',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                             const Spacer(),
+//                             IconButton(
+//                               icon: Icon(
+//                                 _showProfiles ? Icons.expand_less : Icons.expand_more,
+//                                 color: Colors.purple,
+//                               ),
+//                               onPressed: () => setState(() => _showProfiles = !_showProfiles),
+//                               tooltip: _showProfiles ? 'Hide Profiles' : 'Show Profiles',
+//                             ),
+//                           ],
+//                         ),
+//                         if (_showProfiles) ...[
+//                           const SizedBox(height: 12),
+//                           if (_profiles.isEmpty) 
+//                             const Text('No profiles saved. Create your first one!'),
+//                           if (_profiles.isNotEmpty) ...[
+//                             const Text(
+//                               'Quick Connect:',
+//                               style: TextStyle(fontWeight: FontWeight.bold),
+//                             ),
+//                             const SizedBox(height: 8),
+//                             Wrap(
+//                               spacing: 8,
+//                               runSpacing: 8,
+//                               children: _profiles.map((profile) => GestureDetector(
+//                                 onLongPress: () => _showRenameDialog(profile),
+//                                 child: ActionChip(
+//                                   avatar: _currentProfile?.id == profile.id 
+//                                       ? const Icon(Icons.check, size: 16, color: Colors.white)
+//                                       : const Icon(Icons.play_arrow, size: 16),
+//                                   label: Text(profile.name),
+//                                   backgroundColor: _currentProfile?.id == profile.id 
+//                                       ? Colors.purple 
+//                                       : Colors.purple.shade100,
+//                                   labelStyle: TextStyle(
+//                                     color: _currentProfile?.id == profile.id 
+//                                         ? Colors.white 
+//                                       : Colors.purple,
+//                                     fontWeight: FontWeight.w500,
+//                                   ),
+//                                   onPressed: () => _loadProfile(profile),
+//                                 ),
+//                               )).toList(),
+//                             ),
+                           
+//                           ],
+//                           // === ADD THIS LOAD DEFAULT BUTTON HERE ===
+                          
+//                            const SizedBox(height: 12),
+//     if (_profiles.isNotEmpty && _currentProfile == null) ...[
+//       SizedBox(
+//         width: double.infinity,
+//         child: OutlinedButton.icon(
+//           onPressed: () => _loadProfile(_profiles.first),
+//           style: OutlinedButton.styleFrom(
+//             foregroundColor: Colors.purple,
+//             side: const BorderSide(color: Colors.purple),
+//             padding: const EdgeInsets.symmetric(vertical: 8),
+//           ),
+//           icon: const Icon(Icons.restore, size: 16),
+//           label: const Text('LOAD DEFAULT PROFILE'),
+//         ),
+//       ),
+//       const SizedBox(height: 12),
+//     ],
+//     // === END OF ADDED CODE ===
+
+
+
+
+//                           const Divider(),
+//                           const SizedBox(height: 8),
+//                           Row(
+//                             children: [
+//                               Expanded(
+//                                 child: ElevatedButton.icon(
+//                                   onPressed: _saveCurrentAsProfile,
+//                                   style: ElevatedButton.styleFrom(
+//                                     backgroundColor: Colors.purple,
+//                                     foregroundColor: Colors.white,
+//                                     padding: const EdgeInsets.symmetric(vertical: 12),
+//                                   ),
+//                                   icon: const Icon(Icons.save, size: 18),
+//                                   label: const Text('Save Current as Profile'),
+//                                 ),
+//                               ),
+//                               const SizedBox(width: 8),
+//                               if (_currentProfile != null) ...[
+//                                 IconButton(
+//                                   icon: const Icon(Icons.edit, color: Colors.blue),
+//                                   onPressed: () => _showRenameDialog(_currentProfile!),
+//                                   tooltip: 'Rename Current Profile',
+//                                 ),
+//                                 IconButton(
+//                                   icon: const Icon(Icons.delete, color: Colors.red),
+//                                   onPressed: () => _showDeleteDialog(_currentProfile!),
+//                                   tooltip: 'Delete Current Profile',
+//                                 ),
+//                               ],
+//                             ],
+//                           ),
+//                           if (_currentProfile != null) ...[
+//                             const SizedBox(height: 8),
+//                             SizedBox(
+//                               width: double.infinity,
+//                               child: OutlinedButton(
+//                                 onPressed: _updateCurrentProfile,
+//                                 style: OutlinedButton.styleFrom(
+//                                   foregroundColor: Colors.blue,
+//                                   side: const BorderSide(color: Colors.blue),
+//                                 ),
+//                                 child: const Text('Update Current Profile with Current Settings'),
+//                               ),
+//                             ),
+//                             const SizedBox(height: 8),
+//                             Text(
+//                               'Current: ${_currentProfile!.name}',
+//                               style: const TextStyle(fontSize: 12, color: Colors.grey),
+//                             ),
+//                           ],
+//                         ],
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+                
+
+// // SSL/TLS Certificate Configuration Section - FILE NAME FIX
+// Card(
+//   elevation: 4,
+//   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//   child: Padding(
+//     padding: const EdgeInsets.all(12),
+//     child: Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         const Row(
+//           children: [
+//             Icon(Icons.lock, color: Colors.red, size: 20),
+//             SizedBox(width: 8),
+//             Expanded(
+//               child: Text(
+//                 'SSL/TLS Certificate Configuration',
+//                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//                 overflow: TextOverflow.ellipsis,
+//               ),
+//             ),
+//           ],
+//         ),
+//         const SizedBox(height: 12),
+        
+//         // Enable SSL/TLS toggle
+//         CheckboxListTile(
+//           title: const Text('Enable SSL/TLS'),
+//           subtitle: const Text('Secure connection (ssl://, wss://)'),
+//           value: _enableTLS,
+//           onChanged: (value) => setState(() {
+//             _enableTLS = value ?? false;
+//             if (!_enableTLS) {
+//               _certificateType = CertificateType.none;
+//             }
+//           }),
+//           dense: true,
+//           contentPadding: EdgeInsets.zero,
+//           controlAffinity: ListTileControlAffinity.leading,
+//         ),
+        
+//         if (_enableTLS) ...[
+//           const SizedBox(height: 12),
+          
+//           // Certificate Type Selection
+//           DropdownButtonFormField<CertificateType>(
+//             value: _certificateType,
+//             decoration: inputDecoration.copyWith(
+//               labelText: 'Certificate Type',
+//               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+//             ),
+//             isExpanded: true,
+//             items: const [
+//               DropdownMenuItem(
+//                 value: CertificateType.caSigned,
+//                 child: Text('CA Signed Server Certificate'),
+//               ),
+//               DropdownMenuItem(
+//                 value: CertificateType.caOnly,
+//                 child: Text('CA Certificate Only'),
+//               ),
+//               DropdownMenuItem(
+//                 value: CertificateType.selfSigned,
+//                 child: Text('Self-Signed Certificate'),
+//               ),
+//               DropdownMenuItem(
+//                 value: CertificateType.mutualTls,
+//                 child: Text('Mutual TLS'),
+//               ),
+//               DropdownMenuItem(
+//                 value: CertificateType.none,
+//                 child: Text('Standard SSL/TLS'),
+//               ),
+//             ],
+//             onChanged: (value) => setState(() => _certificateType = value ?? CertificateType.none),
+//           ),
+          
+//           const SizedBox(height: 8),
+          
+//           // Backward compatibility option
+//           if (_certificateType == CertificateType.none)
+//           CheckboxListTile(
+//             title: const Text('Allow Self-Signed'),
+//             subtitle: const Text('Accept self-signed certificates'),
+//             value: _allowSelfSigned,
+//             onChanged: (value) => setState(() => _allowSelfSigned = value ?? true),
+//             dense: true,
+//             contentPadding: EdgeInsets.zero,
+//             controlAffinity: ListTileControlAffinity.leading,
+//           ),
+          
+//           // CA Certificate Upload - FIXED WITH FLEXIBLE LAYOUT
+//           if (_certificateType == CertificateType.caSigned || 
+//               _certificateType == CertificateType.caOnly || 
+//               _certificateType == CertificateType.mutualTls)
+//           Container(
+//             margin: const EdgeInsets.symmetric(vertical: 4),
+//             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+//             decoration: BoxDecoration(
+//               color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
+//               borderRadius: BorderRadius.circular(8),
+//             ),
+//             child: Row(
+//               children: [
+//                 const Icon(Icons.security, color: Colors.blue, size: 20),
+//                 const SizedBox(width: 12),
+//                 Expanded(
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       const Text(
+//                         'CA Certificate',
+//                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+//                       ),
+//                       const SizedBox(height: 2),
+//                       _caCertificatePath != null 
+//                           ? Text(
+//                               path.basename(_caCertificatePath!),
+//                               style: const TextStyle(fontSize: 12),
+//                               overflow: TextOverflow.ellipsis,
+//                               maxLines: 1,
+//                             )
+//                           : const Text(
+//                               'Not selected',
+//                               style: TextStyle(fontSize: 12, color: Colors.grey),
+//                             ),
+//                     ],
+//                   ),
+//                 ),
+//                 const SizedBox(width: 8),
+//                 Row(
+//                   mainAxisSize: MainAxisSize.min,
+//                   children: [
+//                     IconButton(
+//                       icon: const Icon(Icons.upload_file, size: 20),
+//                       onPressed: _pickCaCertificate,
+//                       padding: const EdgeInsets.all(4),
+//                     ),
+//                     if (_caCertificatePath != null)
+//                       IconButton(
+//                         icon: const Icon(Icons.close, size: 20, color: Colors.red),
+//                         onPressed: () => setState(() => _caCertificatePath = null),
+//                         padding: const EdgeInsets.all(4),
+//                       ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+          
+//           // Client Certificate Upload (for Mutual TLS) - SIMILAR FIX
+//           if (_certificateType == CertificateType.mutualTls)
+//           Column(
+//             children: [
+//               Container(
+//                 margin: const EdgeInsets.symmetric(vertical: 4),
+//                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+//                 decoration: BoxDecoration(
+//                   color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//                 child: Row(
+//                   children: [
+//                     const Icon(Icons.badge, color: Colors.green, size: 20),
+//                     const SizedBox(width: 12),
+//                     Expanded(
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           const Text(
+//                             'Client Certificate',
+//                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+//                           ),
+//                           const SizedBox(height: 2),
+//                           _clientCertificatePath != null 
+//                               ? Text(
+//                                   path.basename(_clientCertificatePath!),
+//                                   style: const TextStyle(fontSize: 12),
+//                                   overflow: TextOverflow.ellipsis,
+//                                   maxLines: 1,
+//                                 )
+//                               : const Text(
+//                                   'Not selected',
+//                                   style: TextStyle(fontSize: 12, color: Colors.grey),
+//                                 ),
+//                         ],
+//                       ),
+//                     ),
+//                     const SizedBox(width: 8),
+//                     Row(
+//                       mainAxisSize: MainAxisSize.min,
+//                       children: [
+//                         IconButton(
+//                           icon: const Icon(Icons.upload_file, size: 20),
+//                           onPressed: _pickClientCertificate,
+//                           padding: const EdgeInsets.all(4),
+//                         ),
+//                         if (_clientCertificatePath != null)
+//                           IconButton(
+//                             icon: const Icon(Icons.close, size: 20, color: Colors.red),
+//                             onPressed: () => setState(() => _clientCertificatePath = null),
+//                             padding: const EdgeInsets.all(4),
+//                           ),
+//                       ],
+//                 ),
+//                   ],
+//                 ),
+//               ),
+              
+//               Container(
+//                 margin: const EdgeInsets.symmetric(vertical: 4),
+//                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+//                 decoration: BoxDecoration(
+//                   color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//                 child: Row(
+//                   children: [
+//                     const Icon(Icons.vpn_key, color: Colors.orange, size: 20),
+//                     const SizedBox(width: 12),
+//                     Expanded(
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           const Text(
+//                             'Private Key',
+//                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+//                           ),
+//                           const SizedBox(height: 2),
+//                           _clientPrivateKeyPath != null 
+//                               ? Text(
+//                                   path.basename(_clientPrivateKeyPath!),
+//                                   style: const TextStyle(fontSize: 12),
+//                                   overflow: TextOverflow.ellipsis,
+//                                   maxLines: 1,
+//                                 )
+//                               : const Text(
+//                                   'Not selected',
+//                                   style: TextStyle(fontSize: 12, color: Colors.grey),
+//                                 ),
+//                         ],
+//                       ),
+//                     ),
+//                     const SizedBox(width: 8),
+//                     Row(
+//                       mainAxisSize: MainAxisSize.min,
+//                       children: [
+//                         IconButton(
+//                           icon: const Icon(Icons.upload_file, size: 20),
+//                           onPressed: _pickPrivateKey,
+//                           padding: const EdgeInsets.all(4),
+//                         ),
+//                         if (_clientPrivateKeyPath != null)
+//                           IconButton(
+//                             icon: const Icon(Icons.close, size: 20, color: Colors.red),
+//                             onPressed: () => setState(() => _clientPrivateKeyPath = null),
+//                             padding: const EdgeInsets.all(4),
+//                           ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+              
+//               if (_clientPrivateKeyPath != null)
+//               Padding(
+//                 padding: const EdgeInsets.symmetric(vertical: 4),
+//                 child: TextField(
+//                   controller: keyPasswordCtrl,
+//                   obscureText: true,
+//                   decoration: inputDecoration.copyWith(
+//                     labelText: 'Key Password (optional)',
+//                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+//                     isDense: true,
+//                   ),
+//                   onChanged: (value) => _clientKeyPassword = value,
+//                 ),
+//               ),
+//             ],
+//           ),
+          
+//           // Verification Options
+//           if (_certificateType != CertificateType.selfSigned && _certificateType != CertificateType.none)
+//           CheckboxListTile(
+//             title: const Text('Verify Certificate', style: TextStyle(fontSize: 14)),
+//             subtitle: const Text('Validate certificate chain', style: TextStyle(fontSize: 12)),
+//             value: _verifyCertificate,
+//             onChanged: (value) => setState(() => _verifyCertificate = value ?? true),
+//             dense: true,
+//             contentPadding: EdgeInsets.zero,
+//             controlAffinity: ListTileControlAffinity.leading,
+//           ),
+          
+//           const SizedBox(height: 12),
+          
+//           // Action Buttons
+//           Wrap(
+//             spacing: 8,
+//             runSpacing: 8,
+//             alignment: WrapAlignment.center,
+//             children: [
+//               ElevatedButton.icon(
+//                 onPressed: _testCertificateConnection,
+//                 style: ElevatedButton.styleFrom(
+//                   backgroundColor: Colors.blue,
+//                   foregroundColor: Colors.white,
+//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+//                 ),
+//                 icon: const Icon(Icons.verified, size: 16),
+//                 label: const Text('TEST', style: TextStyle(fontSize: 12)),
+//               ),
+//               OutlinedButton.icon(
+//                 onPressed: () {
+//                   _logMessage('Certificate Help', 
+//                       'Certificate Types:\n'
+//                       '1. CA Signed: Validate server with CA cert\n'
+//                       '2. CA Only: Trust only specific CA\n'
+//                       '3. Self-Signed: Testing only\n'
+//                       '4. Mutual TLS: Client + server certs\n'
+//                       '5. Standard SSL: System defaults',
+//                       isIncoming: false);
+//                 },
+//                 style: OutlinedButton.styleFrom(
+//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+//                   side: const BorderSide(color: Colors.blue),
+//                 ),
+//                 icon: const Icon(Icons.info, size: 16, color: Colors.blue),
+//                 label: const Text('HELP', style: TextStyle(fontSize: 12, color: Colors.blue)),
+//               ),
+//               OutlinedButton.icon(
+//                 onPressed: _clearCertificateFiles,
+//                 style: OutlinedButton.styleFrom(
+//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+//                   side: const BorderSide(color: Colors.red),
+//                 ),
+//                 icon: const Icon(Icons.cleaning_services, size: 16, color: Colors.red),
+//                 label: const Text('CLEAR', style: TextStyle(fontSize: 12, color: Colors.red)),
+//               ),
+//             ],
+//           ),
+          
+//           // Certificate Info Display
+//           if (_showCertificateInfo && _certificateInfo.isNotEmpty)
+//           const SizedBox(height: 8),
+//           if (_showCertificateInfo && _certificateInfo.isNotEmpty)
+//           Card(
+//             color: Colors.green[50],
+//             child: Padding(
+//               padding: const EdgeInsets.all(6),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   const Text('📄 Certificate Info:', 
+//                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+//                   const SizedBox(height: 4),
+//                   Container(
+//                     constraints: const BoxConstraints(maxHeight: 100),
+//                     child: SingleChildScrollView(
+//                       child: Text(
+//                         _certificateInfo, 
+//                         style: const TextStyle(fontSize: 11),
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ],
+//       ],
+//     ),
+//   ),
+// ),
+
+
+//                 const SizedBox(height: 16),
+
+//                 // Connection Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         const Row(
+//                           children: [
+//                             Icon(Icons.link, color: Colors.blue),
+//                             SizedBox(width: 8),
+//                             Text(
+//                               'Broker Connection',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 16),
+//                         TextField(
+//                           controller: urlCtrl,
+//                           decoration: inputDecoration.copyWith(
+//                             labelText: 'Broker URL (tcp://, ws://, ssl://, wss://)',
+//                             hintText: 'e.g., tcp://test.mosquitto.org:1883',
+//                             suffixIcon: IconButton(
+//                               icon: const Icon(Icons.info, size: 18),
+//                               onPressed: () {
+//                                 _logMessage('Tips', 
+//                                     'Common broker URLs:\n'
+//                                     '• tcp://test.mosquitto.org:1883\n'
+//                                     '• ws://test.mosquitto.org:8080\n'
+//                                     '• tcp://broker.emqx.io:1883\n'
+//                                     '• ws://broker.emqx.io:8083\n'
+//                                     '• ssl://broker.emqx.io:8883',
+//                                     isIncoming: false);
+//                               },
+//                               tooltip: 'Common broker examples',
+//                             ),
+//                           ),
+//                           keyboardType: TextInputType.url,
+                    
+                          
+//                         ),
+//                         const SizedBox(height: 12),
+//                         Row(
+//                           children: [
+//                             Expanded(
+//                               child: TextField(
+//                                 controller: clientIdCtrl,
+//                                 decoration: inputDecoration.copyWith(
+//                                   labelText: 'Client ID',
+//                                   hintText: 'Leave empty for auto-generate',
+//                                 ),
+//                               ),
+//                             ),
+//                             const SizedBox(width: 8),
+//                             IconButton(
+//                               icon: const Icon(Icons.refresh),
+//                               onPressed: () {
+//                                 clientIdCtrl.text = 'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(6)}';
+//                                 _logMessage('System', 'Generated new Client ID', isIncoming: false);
+//                               },
+//                               tooltip: 'Generate new Client ID',
+//                             ),
+//                           ],
+//                         ),
+                        
+//                         // Auto-reconnect setting
+//                         CheckboxListTile(
+//                           title: const Text('Auto-reconnect'),
+//                           subtitle: const Text('Automatically reconnect if connection is lost'),
+//                           value: _autoReconnect,
+//                           onChanged: (value) => setState(() => _autoReconnect = value ?? true),
+//                           dense: true,
+//                           contentPadding: EdgeInsets.zero,
+//                         ),
+                        
+//                         if (_reconnectAttempts > 0) ...[
+//                           const SizedBox(height: 8),
+//                           Container(
+//                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+//                             decoration: BoxDecoration(
+//                               color: _reconnectAttempts >= _maxReconnectAttempts 
+//                                   ? Colors.red.withOpacity(0.1)
+//                                   : Colors.orange.withOpacity(0.1),
+//                               borderRadius: BorderRadius.circular(8),
+//                               border: Border.all(
+//                                 color: _reconnectAttempts >= _maxReconnectAttempts 
+//                                   ? Colors.red
+//                                   : Colors.orange,
+//                               ),
+//                             ),
+//                             child: Row(
+//                               children: [
+//                                 Icon(
+//                                   _reconnectAttempts >= _maxReconnectAttempts 
+//                                       ? Icons.error
+//                                       : Icons.autorenew,
+//                                   color: _reconnectAttempts >= _maxReconnectAttempts 
+//                                       ? Colors.red
+//                                       : Colors.orange,
+//                                   size: 16,
+//                                 ),
+//                                 const SizedBox(width: 8),
+//                                 Text(
+//                                   'Reconnect attempts: $_reconnectAttempts/$_maxReconnectAttempts',
+//                                   style: TextStyle(
+//                                     color: _reconnectAttempts >= _maxReconnectAttempts 
+//                                         ? Colors.red
+//                                         : Colors.orange,
+//                                     fontSize: 12,
+//                                   ),
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                         ],
+                        
+//                         const SizedBox(height: 16),
+//                         LayoutBuilder(
+//                           builder: (context, constraints) {
+//                             if (constraints.maxWidth > 400) {
+//                               return Row(
+//                                 children: [
+//                                   Expanded(
+//                                     flex: 2,
+//                                     child: DropdownButtonFormField<MqttQos>(
+//                                       value: _qos,
+//                                       items: const [
+//                                         DropdownMenuItem(
+//                                           value: MqttQos.atMostOnce,
+//                                           child: Text('QoS 0 - At Most Once'),
+//                                         ),
+//                                         DropdownMenuItem(
+//                                           value: MqttQos.atLeastOnce,
+//                                           child: Text('QoS 1 - At Least Once'),
+//                                         ),
+//                                         DropdownMenuItem(
+//                                           value: MqttQos.exactlyOnce,
+//                                           child: Text('QoS 2 - Exactly Once'),
+//                                         ),
+//                                       ],
+//                                       onChanged: _connectionState == ConnectionState.connected ? null : (v) => setState(() => _qos = v ?? MqttQos.atMostOnce),
+//                                       decoration: inputDecoration.copyWith(labelText: 'Default QoS'),
+//                                     ),
+//                                   ),
+//                                   const SizedBox(width: 12),
+//                                   Expanded(
+//                                     flex: 1,
+//                                     child: ElevatedButton(
+//                                       onPressed: _connectionState == ConnectionState.connected ? _disconnect : _connect,
+//                                       style: ElevatedButton.styleFrom(
+//                                         backgroundColor: _connectionState == ConnectionState.connected ? Colors.red : Colors.green,
+//                                         foregroundColor: Colors.white,
+//                                         padding: const EdgeInsets.symmetric(vertical: 16),
+//                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//                                       ),
+//                                       child: Text(
+//                                         _connectionState == ConnectionState.connected ? 'DISCONNECT' : 'CONNECT',
+//                                         textAlign: TextAlign.center,
+//                                       ),
+//                                     ),
+//                                   ),
+//                                 ],
+//                               );
+//                             } else {
+//                               return Column(
+//                                 children: [
+//                                   DropdownButtonFormField<MqttQos>(
+//                                     value: _qos,
+//                                     items: const [
+//                                       DropdownMenuItem(
+//                                         value: MqttQos.atMostOnce,
+//                                         child: Text('QoS 0 - At Most Once'),
+//                                       ),
+//                                       DropdownMenuItem(
+//                                         value: MqttQos.atLeastOnce,
+//                                         child: Text('QoS 1 - At Least Once'),
+//                                       ),
+//                                       DropdownMenuItem(
+//                                         value: MqttQos.exactlyOnce,
+//                                         child: Text('QoS 2 - Exactly Once'),
+//                                       ),
+//                                     ],
+//                                     onChanged: _connectionState == ConnectionState.connected ? null : (v) => setState(() => _qos = v ?? MqttQos.atMostOnce),
+//                                     decoration: inputDecoration.copyWith(labelText: 'Default QoS'),
+//                                   ),
+//                                   const SizedBox(height: 12),
+//                                   SizedBox(
+//                                     width: double.infinity,
+//                                     child: ElevatedButton(
+//                                       onPressed: _connectionState == ConnectionState.connected ? _disconnect : _connect,
+//                                       style: ElevatedButton.styleFrom(
+//                                         backgroundColor: _connectionState == ConnectionState.connected ? Colors.red : Colors.green,
+//                                         foregroundColor: Colors.white,
+//                                         padding: const EdgeInsets.symmetric(vertical: 16),
+//                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//                                       ),
+//                                       child: Text(_connectionState == ConnectionState.connected ? 'DISCONNECT' : 'CONNECT'),
+//                                     ),
+//                                   ),
+//                                 ],
+//                               );
+//                             }
+//                           },
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+
+//                 // Authentication Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         const Row(
+//                           children: [
+//                             Icon(Icons.security, color: Colors.purple),
+//                             SizedBox(width: 8),
+//                             Text(
+//                               'Authentication',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Username/Password for secure brokers',
+//                           style: TextStyle(fontSize: 12, color: Colors.grey),
+//                         ),
+//                         const SizedBox(height: 16),
+//                         CheckboxListTile(
+//                           title: const Text('Enable Authentication'),
+//                           subtitle: const Text('Use username/password'),
+//                           value: _enableAuth,
+//                           onChanged: (value) => setState(() => _enableAuth = value ?? false),
+//                           dense: true,
+//                           contentPadding: EdgeInsets.zero,
+//                         ),
+//                         if (_enableAuth) ...[
+//                           const SizedBox(height: 16),
+//                           TextField(
+//                             controller: usernameCtrl,
+//                             decoration: inputDecoration.copyWith(
+//                               labelText: 'Username',
+//                               hintText: 'e.g., admin, user, iot_device',
+//                             ),
+//                           ),
+//                           const SizedBox(height: 12),
+//                           TextField(
+//                             controller: passwordCtrl,
+//                             obscureText: _hidePassword,
+//                             decoration: inputDecoration.copyWith(
+//                               labelText: 'Password', 
+//                               hintText: 'Enter your password',
+//                               suffixIcon: IconButton(
+//                                 icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off),
+//                                 onPressed: () => setState(() => _hidePassword = !_hidePassword),
+//                               ),
+//                             ),
+//                           ),
+//                         ],
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+
+//                 // Connection Settings Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         const Row(
+//                           children: [
+//                             Icon(Icons.settings, color: Colors.brown),
+//                             SizedBox(width: 8),
+//                             Text(
+//                               'Connection Settings',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 16),
+//                         Row(
+//                           children: [
+//                             Expanded(
+//                               child: CheckboxListTile(
+//                                 title: const Text('Clean Session'),
+//                                 subtitle: const Text('TRUE: Fresh start, FALSE: Remember subscriptions'),
+//                                 value: _cleanSession,
+//                                 onChanged: (value) => setState(() => _cleanSession = value ?? true),
+//                                 dense: true,
+//                                 contentPadding: EdgeInsets.zero,
+//                               ),
+//                             ),
+//                             const SizedBox(width: 12),
+//                             Expanded(
+//                               child: TextField(
+//                                 controller: keepAliveCtrl,
+//                                 decoration: inputDecoration.copyWith(
+//                                   labelText: 'Keep Alive (seconds)',
+//                                   hintText: 'e.g., 60',
+//                                 ),
+//                                 keyboardType: TextInputType.number,
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 8),
+//                         Container(
+//                           padding: const EdgeInsets.all(8),
+//                           decoration: BoxDecoration(
+//                             color: Colors.blue.withOpacity(0.1),
+//                             borderRadius: BorderRadius.circular(8),
+//                           ),
+//                           child: const Text(
+//                             '💡 Clean Session = TRUE: Fresh connection, no persistent session\n'
+//                             'Clean Session = FALSE: Broker remembers session (required for Will messages with some brokers)\n'
+//                             '⚠️ Note: For reliable Will messages, use Clean Session = FALSE',
+//                             style: TextStyle(fontSize: 12, color: Colors.blue),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+
+//                 // Will Message Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         const Row(
+//                           children: [
+//                             Icon(Icons.emergency, color: Colors.orange),
+//                             SizedBox(width: 8),
+//                             Text(
+//                               'Will Message',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Message published if client disconnects unexpectedly (app crash/swipe)',
+//                           style: TextStyle(fontSize: 12, color: Colors.grey),
+//                         ),
+//                         const SizedBox(height: 16),
+//                         CheckboxListTile(
+//                           title: const Text('Enable Will Message'),
+//                           subtitle: const Text('Send message if connection is lost abruptly'),
+//                           value: _enableWillMessage,
+//                           onChanged: (value) => setState(() => _enableWillMessage = value ?? false),
+//                           dense: true,
+//                           contentPadding: EdgeInsets.zero,
+//                         ),
+//                         if (_enableWillMessage) ...[
+//                           const SizedBox(height: 16),
+//                           TextField(
+//                             controller: willTopicCtrl,
+//                             decoration: inputDecoration.copyWith(
+//                               labelText: 'Will Topic',
+//                               hintText: 'e.g., device/status',
+//                             ),
+//                           ),
+//                           const SizedBox(height: 12),
+//                           TextField(
+//                             controller: willPayloadCtrl,
+//                             decoration: inputDecoration.copyWith(
+//                               labelText: 'Will Payload', 
+//                               hintText: 'e.g., offline, disconnected, error',
+//                             ),
+//                           ),
+//                           const SizedBox(height: 12),
+//                           Row(
+//                             children: [
+//                               Expanded(
+//                                 child: DropdownButtonFormField<MqttQos>(
+//                                   value: _willQos,
+//                                   items: const [
+//                                     DropdownMenuItem(
+//                                       value: MqttQos.atMostOnce, 
+//                                       child: Text('Will QoS 0'),
+//                                     ),
+//                                     DropdownMenuItem(
+//                                       value: MqttQos.atLeastOnce, 
+//                                       child: Text('Will QoS 1'),
+//                                     ),
+//                                     DropdownMenuItem(
+//                                       value: MqttQos.exactlyOnce, 
+//                                       child: Text('Will QoS 2'),
+//                                     ),
+//                                   ],
+//                                   onChanged: (v) => setState(() => _willQos = v ?? MqttQos.atMostOnce),
+//                                   decoration: inputDecoration.copyWith(labelText: 'Will QoS'),
+//                                 ),
+//                               ),
+//                               const SizedBox(width: 12),
+//                               Expanded(
+//                                 child: CheckboxListTile(
+//                                   title: const Text('Retain Will'),
+//                                   subtitle: const Text('Broker stores Will for new subscribers'),
+//                                   value: _willRetain,
+//                                   onChanged: (value) => setState(() => _willRetain = value ?? false),
+//                                   dense: true,
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                           const SizedBox(height: 16),
+//                           Container(
+//                             padding: const EdgeInsets.all(8),
+//                             decoration: BoxDecoration(
+//                               color: Colors.orange.withOpacity(0.1),
+//                               borderRadius: BorderRadius.circular(8),
+//                             ),
+//                             child: const Text(
+//                               '💡 Will Message Tips:\n'
+//                               '1. Set Clean Session = FALSE for best results\n'
+//                               '2. Will triggers on app crash/swipe (no disconnect packet)\n'
+//                               '3. Test by swiping app away or force closing\n'
+//                               '4. Subscribe to Will topic to see the message',
+//                               style: TextStyle(fontSize: 12, color: Colors.orange),
+//                             ),
+//                           ),
+//                           const SizedBox(height: 16),
+//                           SizedBox(
+//                             width: double.infinity,
+//                             child: OutlinedButton.icon(
+//                               onPressed: _clearWillRetainedMessage,
+//                               style: OutlinedButton.styleFrom(
+//                                 foregroundColor: Colors.orange,
+//                                 side: const BorderSide(color: Colors.orange),
+//                                 padding: const EdgeInsets.symmetric(vertical: 12),
+//                               ),
+//                               icon: const Icon(Icons.cleaning_services, size: 18),
+//                               label: const Text('CLEAR RETAINED WILL MESSAGE'),
+//                             ),
+//                           ),
+//                         ],
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+
+//                 // Subscription Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         const Row(
+//                           children: [
+//                             Icon(Icons.rss_feed, color: Colors.green),
+//                             SizedBox(width: 8),
+//                             Text(
+//                               'Subscribe to Topics',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Use + for single-level and # for multi-level wildcards',
+//                           style: TextStyle(fontSize: 12, color: Colors.grey),
+//                         ),
+//                         const SizedBox(height: 16),
+//                         Row(
+//                           children: [
+//                             Expanded(
+//                               child: TextField(
+//                                 controller: subTopicCtrl,
+//                                 decoration: inputDecoration.copyWith(
+//                                   labelText: 'Topic to subscribe (supports + and #)',
+//                                   hintText: 'e.g., sensor/+/temperature, home/#',
+//                                 ),
+//                               ),
+//                             ),
+//                             const SizedBox(width: 12),
+//                             ElevatedButton(
+//                               onPressed: _subscribe,
+//                               style: ElevatedButton.styleFrom(
+//                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+//                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//                               ),
+//                               child: const Text(
+//                                 'SUBSCRIBE',
+//                                 style: TextStyle(fontSize: 12),
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                         if (_subscriptions.isNotEmpty) ...[
+//                           const SizedBox(height: 16),
+//                           Row(
+//                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                             children: [
+//                               const Text('Active Subscriptions:', style: TextStyle(fontWeight: FontWeight.bold)),
+//                               IconButton(
+//                                 icon: const Icon(Icons.refresh, size: 18),
+//                                 onPressed: _connectionState == ConnectionState.connected ? _resubscribeToAllTopics : null,
+//                                 tooltip: 'Refresh All Subscriptions',
+//                               ),
+//                             ],
+//                           ),
+//                           const Divider(),
+//                           ..._subscriptions.map((sub) => ListTile(
+//                             title: Text(
+//                               sub.topic,
+//                               overflow: TextOverflow.ellipsis,
+//                               style: TextStyle(
+//                                 color: sub.topic.contains('+') || sub.topic.contains('#') 
+//                                     ? Colors.orange 
+//                                     : null,
+//                                 fontWeight: sub.topic.contains('+') || sub.topic.contains('#')
+//                                     ? FontWeight.bold
+//                                     : null,
+//                               ),
+//                             ),
+//                             subtitle: Text('QoS: ${sub.qos.index} ${sub.topic.contains('+') || sub.topic.contains('#') ? '• Wildcard' : ''}'),
+//                             trailing: IconButton(
+//                               icon: const Icon(Icons.unsubscribe, color: Colors.red),
+//                               onPressed: () => _unsubscribe(sub.topic),
+//                             ),
+//                             dense: true,
+//                           )),
+//                           const SizedBox(height: 8),
+//                           Container(
+//                             padding: const EdgeInsets.all(8),
+//                             decoration: BoxDecoration(
+//                               color: Colors.green.withOpacity(0.1),
+//                               borderRadius: BorderRadius.circular(8),
+//                             ),
+//                             child: const Text(
+//                               '✅ Subscriptions will be preserved when you disconnect/reconnect',
+//                               style: TextStyle(fontSize: 12, color: Colors.green),
+//                             ),
+//                           ),
+//                         ],
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 const SizedBox(height: 16),
+
+
+//               //Publish Message
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         const Row(
+//                           children: [
+//                             Icon(Icons.send, color: Colors.purple),
+//                             SizedBox(width: 8),
+//                             Text(
+//                               'Publish Message',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 16),
+//                         TextField(
+//                           controller: pubTopicCtrl,
+//                           decoration: inputDecoration.copyWith(labelText: 'Topic to publish'),
+//                         ),
+//                         const SizedBox(height: 12),
+//                         TextField(
+//                           controller: payloadCtrl,
+//                           decoration: inputDecoration.copyWith(labelText: 'Payload'),
+//                           minLines: 2,
+//                           maxLines: 4,
+//                         ),
+//                         const SizedBox(height: 12),
+//                         CheckboxListTile(
+//                           title: const Text('Retain Message'),
+//                           subtitle: const Text('Broker will store last message and deliver to new subscribers'),
+//                           value: _retainMessage,
+//                           onChanged: (value) => setState(() => _retainMessage = value ?? false),
+//                           dense: true,
+//                           contentPadding: EdgeInsets.zero,
+//                           activeColor: Colors.blue,
+//                         ),
+//                         const SizedBox(height: 16),
+//                         SizedBox(
+//                           width: double.infinity,
+//                           child: ElevatedButton(
+//                             onPressed: _publish,
+//                             style: ElevatedButton.styleFrom(
+//                               padding: const EdgeInsets.symmetric(vertical: 16),
+//                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//                             ),
+//                             child: const Text('PUBLISH'),
+//                           ),
+//                         ),
+//                         const SizedBox(height: 8),
+//                         SizedBox(
+//                           width: double.infinity,
+//                           child: OutlinedButton(
+//                             onPressed: _clearRetainedMessage,
+//                             style: OutlinedButton.styleFrom(
+//                               foregroundColor: Colors.orange,
+//                               side: const BorderSide(color: Colors.orange),
+//                               padding: const EdgeInsets.symmetric(vertical: 12),
+//                             ),
+//                             child: const Text('CLEAR RETAINED MESSAGE'),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+
+
+//                 const SizedBox(height: 16),
+
+//                 // Messages Log Section
+//                 Card(
+//                   elevation: 4,
+//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Row(
+//                           children: [
+//                             const Icon(Icons.message, color: Colors.teal),
+//                             const SizedBox(width: 8),
+//                             const Text(
+//                               'Message Log',
+//                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//                             ),
+//                             const Spacer(),
+//                             IconButton(
+//                               icon: Icon(
+//                                 _showHistory ? Icons.live_tv : Icons.history,
+//                                 color: _showHistory ? Colors.blue : Colors.grey,
+//                               ),
+//                               onPressed: _toggleHistoryView,
+//                               tooltip: _showHistory ? 'Switch to Live View' : 'View Full History',
+//                             ),
+//                             Text(
+//                               '${_filteredMessages.length} messages',
+//                               style: const TextStyle(fontSize: 12, color: Colors.grey),
+//                             ),
+//                           ],
+//                         ),
+                        
+//                         const SizedBox(height: 12),
+//                         TextField(
+//                           controller: searchCtrl,
+//                           decoration: inputDecoration.copyWith(
+//                             labelText: 'Search messages...',
+//                             prefixIcon: const Icon(Icons.search),
+//                             suffixIcon: _searchQuery.isNotEmpty 
+//                                 ? IconButton(
+//                                     icon: const Icon(Icons.clear),
+//                                     onPressed: () {
+//                                       searchCtrl.clear();
+//                                       setState(() => _searchQuery = '');
+//                                     },
+//                                   )
+//                                 : null,
+//                           ),
+//                           onChanged: _onSearchChanged,
+//                         ),
+                        
+//                         if (_searchQuery.isNotEmpty) ...[
+//                           const SizedBox(height: 8),
+//                           Container(
+//                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+//                             decoration: BoxDecoration(
+//                               color: Colors.blue.withOpacity(0.1),
+//                               borderRadius: BorderRadius.circular(8),
+//                             ),
+//                             child: Text(
+//                               '🔍 Showing ${_filteredMessages.length} messages matching "$_searchQuery"',
+//                               style: const TextStyle(fontSize: 12, color: Colors.blue),
+//                             ),
+//                           ),
+//                         ],
+                        
+//                         if (_showHistory) ...[
+//                           const SizedBox(height: 8),
+//                           Container(
+//                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+//                             decoration: BoxDecoration(
+//                               color: Colors.blue.withOpacity(0.1),
+//                               borderRadius: BorderRadius.circular(8),
+//                             ),
+//                             child: const Text(
+//                               '📚 Viewing Full History',
+//                               style: TextStyle(fontSize: 12, color: Colors.blue),
+//                             ),
+//                           ),
+//                         ],
+//                         const SizedBox(height: 12),
+//                         Container(
+//                           height: 300,
+//                           decoration: BoxDecoration(
+//                             border: Border.all(color: Colors.grey.shade300),
+//                             borderRadius: BorderRadius.circular(8),
+//                             color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
+//                           ),
+//                           child: _filteredMessages.isEmpty
+//                               ? Center(
+//                                   child: Column(
+//                                     mainAxisAlignment: MainAxisAlignment.center,
+//                                     children: [
+//                                       Icon(
+//                                         Icons.search_off,
+//                                         size: 48,
+//                                         color: Colors.grey.shade400,
+//                                       ),
+//                                       const SizedBox(height: 8),
+//                                       Text(
+//                                         _searchQuery.isNotEmpty 
+//                                             ? 'No messages found for "$_searchQuery"'
+//                                             : 'No messages yet\n\nConnect to broker and subscribe to topics',
+//                                         style: TextStyle(color: Colors.grey.shade600),
+//                                         textAlign: TextAlign.center,
+//                                       ),
+//                                     ],
+//                                   ),
+//                                 )
+
+
+//                               // : ListView.builder(
+//                               //     reverse: true,
+//                               //     itemCount: _filteredMessages.length,
+//                               //     itemBuilder: (context, index) {
+//                               //       final message = _filteredMessages[index];
+//                               //       return MessageItem(message: message);
+//                               //     },
+//                               //   ),
+
+//                               : ListView.builder(
+//                                       reverse: true,
+//                                       controller: _scrollController,  // ← ADD THIS LINE
+//                                       itemCount: _filteredMessages.length,
+//                                       itemBuilder: (context, index) {
+//                                       final message = _filteredMessages[index];
+//                                       return MessageItem(message: message);
+//                                       },
+//                                       ),
+
+
+
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+
+//                 // Export Profiles & Templates Button
+//                 // const SizedBox(height: 16),
+//                 // Card(
+//                 //   elevation: 2,
+//                 //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//                 //   child: Padding(
+//                 //     padding: const EdgeInsets.all(12),
+//                 //     child: Column(
+//                 //       children: [
+//                 //         const Text(
+//                 //           'Backup & Restore',
+//                 //           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+//                 //         ),
+//                 //         const SizedBox(height: 8),
+//                 //         SizedBox(
+//                 //           width: double.infinity,
+//                 //           child: OutlinedButton.icon(
+//                 //             onPressed: _exportProfilesAndTemplates,
+//                 //             style: OutlinedButton.styleFrom(
+//                 //               foregroundColor: Colors.green,
+//                 //               side: const BorderSide(color: Colors.green),
+//                 //             ),
+//                 //             icon: const Icon(Icons.backup, size: 16),
+//                 //             label: const Text('EXPORT PROFILES & TEMPLATES'),
+//                 //           ),
+//                 //         ),
+//                 //       ],
+//                 //     ),
+//                 //   ),
+//                 // ),
+
+//                 const SizedBox(height: 16),
+
+//                 // Backup & Restore Card - UPDATED
+// const SizedBox(height: 16),
+// Card(
+//   elevation: 2,
+//   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//   child: Padding(
+//     padding: const EdgeInsets.all(12),
+//     child: Column(
+//       children: [
+//         const Text(
+//           'Backup & Restore Connections',
+//           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+//         ),
+//         const SizedBox(height: 8),
+//         const Text(
+//           'Export/Import connection profiles and message templates',
+//           style: TextStyle(fontSize: 12, color: Colors.grey),
+//         ),
+//         const SizedBox(height: 12),
+//         Row(
+//           children: [
+//             Expanded(
+//               child: OutlinedButton.icon(
+//                 onPressed: _exportProfilesAndTemplates,
+//                 style: OutlinedButton.styleFrom(
+//                   foregroundColor: Colors.green,
+//                   side: const BorderSide(color: Colors.green),
+//                   padding: const EdgeInsets.symmetric(vertical: 12),
+//                 ),
+//                 icon: const Icon(Icons.backup, size: 16),
+//                 label: const Text('EXPORT CONNECTIONS'),
+//               ),
+//             ),
+//             const SizedBox(width: 8),
+//             Expanded(
+//               child: OutlinedButton.icon(
+//                 onPressed: _importProfilesAndTemplates,
+//                 style: OutlinedButton.styleFrom(
+//                   foregroundColor: Colors.blue,
+//                   side: const BorderSide(color: Colors.blue),
+//                   padding: const EdgeInsets.symmetric(vertical: 12),
+//                 ),
+//                 icon: const Icon(Icons.restore, size: 16),
+//                 label: const Text('IMPORT BACKUP'),
+//               ),
+//             ),
+//           ],
+//         ),
+//         const SizedBox(height: 8),
+//         Text(
+//           'Current: ${_profiles.length} profiles, ${_templates.length} templates',
+//           style: const TextStyle(fontSize: 11, color: Colors.grey),
+//         ),
+//       ],
+//     ),
+//   ),
+// ),
+
+
+//                 const SizedBox(height: 16),
+//               ],
+//             ),
+//           ),
+//         ),
+
+
+
+
+
       ),
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Data model for MQTT messages
 class Message {
