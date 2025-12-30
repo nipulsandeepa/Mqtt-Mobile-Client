@@ -661,43 +661,89 @@ class _MqttCorrectState extends State<MqttCorrect> {
 
 
 
-// Call this when URL changes
-void _onUrlChanged(String url) {
-  _autoDetectAuthRequirements(url);
-  
-  // Also auto-enable SSL for certain ports
-  _autoDetectSSLRequirements(url);
+
+
+
+
+
+
+
+
+
+
+
+
+
+void _showBrokerHelp() {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('MQTT Ports & Authentication'),
+      content: const SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('📌 Important:', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            Text('• Port numbers DO NOT determine authentication requirements'),
+            Text('• Each broker configures ports differently'),
+            SizedBox(height: 12),
+            Text('🔧 Common Patterns (NOT rules):', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('• 1883: Often unauthenticated (but not always)'),
+            Text('• 1884: Sometimes authenticated'),
+            Text('• 8883: SSL/TLS often unauthenticated'),
+            Text('• 8884: SSL/TLS sometimes authenticated'),
+            SizedBox(height: 12),
+            Text('💡 How to know:'),
+            Text('1. Check your broker documentation'),
+            Text('2. Ask your system administrator'),
+            Text('3. Try with/without credentials'),
+            SizedBox(height: 12),
+            Text('🧪 Current Public Brokers:'),
+            Text('• EMQX 1883: Works without auth'),
+            Text('• EMQX 1884: May or may not work'),
+            Text('• Mosquitto: All ports work without auth'),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('I Understand'),
+        ),
+      ],
+    ),
+  );
 }
 
-void _autoDetectSSLRequirements(String url) {
-  if (url.startsWith('ssl://') || url.startsWith('wss://')) {
-    setState(() {
-      _enableTLS = true;
-    });
-  } else if (url.startsWith('tcp://') || url.startsWith('ws://')) {
-    setState(() {
-      _enableTLS = false;
-    });
+
+
+
+
+Future<void> _debugDatabaseContents() async {
+  try {
+    _logMessage('Debug', '=== DATABASE CONTENTS ===', isIncoming: false);
+    
+    // Check profiles
+    final profiles = await _profileHelper.getAllProfiles();
+    _logMessage('Debug', 'Profiles in DB: ${profiles.length}', isIncoming: false);
+    for (final profile in profiles) {
+      _logMessage('Debug', '  - ${profile.name} (ID: ${profile.id})', isIncoming: false);
+    }
+    
+    // Check templates
+    final templates = await _templateHelper.getAllTemplates();
+    _logMessage('Debug', 'Templates in DB: ${templates.length}', isIncoming: false);
+    for (final template in templates) {
+      _logMessage('Debug', '  - ${template.name} (ID: ${template.id})', isIncoming: false);
+    }
+    
+    _logMessage('Debug', '=== END DATABASE CONTENTS ===', isIncoming: false);
+  } catch (e) {
+    _logMessage('Debug', 'Error checking DB: $e', isIncoming: false);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -773,8 +819,10 @@ void _autoDetectSSLRequirements(String url) {
   // INITIALIZE TEMPLATES
   Future<void> _initializeTemplates() async {
     try {
+        _logMessage('Templates', '🔄 Initializing tepmlates...', isIncoming: false);
       await _templateHelper.createDefaultTemplates();
       final templates = await _templateHelper.getAllTemplates();
+      _logMessage('Templates', '📊 Loaded ${templates.length} Templates from DB', isIncoming: false);
       setState(() {
         _templates = templates;
       });
@@ -795,47 +843,149 @@ void _autoDetectSSLRequirements(String url) {
     _logMessage('Templates', '✅ Loaded template: ${template.name}', isIncoming: false);
   }
 
+
+
+
+
+
+
+
   // SAVE CURRENT AS TEMPLATE
-  Future<void> _saveCurrentAsTemplate() async {
-    final template = MessageTemplate(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: 'Template ${_templates.length + 1}',
-      topic: pubTopicCtrl.text.trim(),
-      payload: payloadCtrl.text.trim(),
-      qos: _qos.index,
-      retain: _retainMessage,
-      createdAt: DateTime.now(),
-    );
+  // Future<void> _saveCurrentAsTemplate() async {
+  //   final template = MessageTemplate(
+  //     id: DateTime.now().millisecondsSinceEpoch.toString(),
+  //     name: 'Template ${_templates.length + 1}',
+  //     topic: pubTopicCtrl.text.trim(),
+  //     payload: payloadCtrl.text.trim(),
+  //     qos: _qos.index,
+  //     retain: _retainMessage,
+  //     createdAt: DateTime.now(),
+  //   );
     
-    try {
-      await _templateHelper.insertTemplate(template);
-      final templates = await _templateHelper.getAllTemplates();
-      setState(() {
-        _templates = templates;
-        _currentTemplate = template;
-      });
-      _logMessage('Templates', '✅ Template saved: ${template.name}', isIncoming: false);
-    } catch (e) {
-      _logMessage('Templates', '❌ Error saving template: $e', isIncoming: false);
-    }
+  //   try {
+  //     await _templateHelper.insertTemplate(template);
+  //     final templates = await _templateHelper.getAllTemplates();
+  //     setState(() {
+  //       _templates = templates;
+  //       _currentTemplate = template;
+  //     });
+  //     _logMessage('Templates', '✅ Template saved: ${template.name}', isIncoming: false);
+  //   } catch (e) {
+  //     _logMessage('Templates', '❌ Error saving template: $e', isIncoming: false);
+  //   }
+  // }
+
+
+Future<void> _saveCurrentAsTemplate() async {
+  _logMessage('Templates', '🔄 Starting to save template...', isIncoming: false);
+  
+  final template = MessageTemplate(
+    id: DateTime.now().millisecondsSinceEpoch.toString(), // Make sure this is unique!
+    name: 'Template ${_templates.length + 1}',
+    topic: pubTopicCtrl.text.trim(),
+    payload: payloadCtrl.text.trim(),
+    qos: _qos.index,
+    retain: _retainMessage,
+    createdAt: DateTime.now(),
+  );
+  
+  _logMessage('Templates', '📝 Created template object: ${template.name} (ID: ${template.id})', isIncoming: false);
+  
+  try {
+    final result = await _templateHelper.insertTemplate(template);
+    _logMessage('Templates', '✅ Database insert result: $result', isIncoming: false);
+    
+    final templates = await _templateHelper.getAllTemplates();
+    _logMessage('Templates', '📊 Total templates after save: ${templates.length}', isIncoming: false);
+    
+    setState(() {
+      _templates = templates;
+      _currentTemplate = template;
+    });
+    _logMessage('Templates', '✅ Template saved: ${template.name}', isIncoming: false);
+  } catch (e) {
+    _logMessage('Templates', '❌ Error saving template: $e', isIncoming: false);
+    _logMessage('Templates', '💡 Stack trace: ${e.toString()}', isIncoming: false);
   }
+}
+
+
+
+
+
+
+
+
+
+
+
 
   // DELETE TEMPLATE
-  void _deleteTemplate(MessageTemplate template) async {
-    try {
-      await _templateHelper.deleteTemplate(template.id);
-      final templates = await _templateHelper.getAllTemplates();
-      setState(() {
-        _templates = templates;
-        if (_currentTemplate?.id == template.id) {
-          _currentTemplate = null;
-        }
-      });
-      _logMessage('Templates', '🗑️ Deleted template: ${template.name}', isIncoming: false);
-    } catch (e) {
-      _logMessage('Templates', '❌ Error deleting template: $e', isIncoming: false);
-    }
+  // void _deleteTemplate(MessageTemplate template) async {
+  //   try {
+  //     await _templateHelper.deleteTemplate(template.id);
+  //     final templates = await _templateHelper.getAllTemplates();
+
+  //     setState(() {
+  //       _templates = templates;
+  //       if (_currentTemplate?.id == template.id) {
+  //         _currentTemplate = null;
+  //       }
+  //     });
+  //     _logMessage('Templates', '🗑️ Deleted template: ${template.name}', isIncoming: false);
+  //   } catch (e) {
+  //     _logMessage('Templates', '❌ Error deleting template: $e', isIncoming: false);
+  //   }
+  // }
+
+
+
+
+void _deleteTemplate(MessageTemplate template) async {
+  try {
+    await _templateHelper.deleteTemplate(template.id);
+    final templates = await _templateHelper.getAllTemplates();
+    
+    // Check if we're deleting the currently loaded template
+    final bool isCurrentTemplate = _currentTemplate?.id == template.id;
+    
+    setState(() {
+      _templates = templates;
+      if (isCurrentTemplate) {
+        _currentTemplate = null;
+        // Clear template fields
+        _clearTemplateFields();
+      }
+    });
+    
+    _logMessage('Templates', '🗑️ Deleted template: ${template.name}', isIncoming: false);
+    
+  } catch (e) {
+    _logMessage('Templates', '❌ Error deleting template: $e', isIncoming: false);
   }
+}
+
+// Add this helper method to clear template fields
+void _clearTemplateFields() {
+  setState(() {
+    pubTopicCtrl.text = 'test/topic';
+    payloadCtrl.text = '{"message":"flutter mqtt"}';
+    _qos = MqttQos.atMostOnce;
+    _retainMessage = false;
+  });
+  _logMessage('Templates', '🧹 Cleared template fields', isIncoming: false);
+}
+
+
+
+
+
+
+
+
+
+
+
 
   // MESSAGE SEARCH FUNCTIONALITY WITH DEBOUNCE
   List<Message> get _filteredMessages {
@@ -872,6 +1022,7 @@ void _autoDetectSSLRequirements(String url) {
     return true;
   }
 
+
   // CONNECTION HEALTH MONITORING
   void _startConnectionHealthCheck() {
     _connectionHealthTimer?.cancel();
@@ -886,6 +1037,65 @@ void _autoDetectSSLRequirements(String url) {
       }
     });
   }
+
+
+
+
+
+
+// Instead of auto-enabling auth, show a suggestion
+void _showAuthSuggestion(String url) {
+  try {
+    final uri = Uri.parse(url);
+    final port = uri.port;
+    
+    // Common patterns (NOT rules, just suggestions)
+    final oftenAuthPorts = [1884, 8884];
+    final oftenNoAuthPorts = [1883, 8883];
+    
+    if (oftenAuthPorts.contains(port) && !_enableAuth) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Authentication Suggestion'),
+            content: Text(
+              'Port $port often requires authentication on SOME brokers.\n\n'
+              'Do you want to enable authentication?\n\n'
+              'Note: This depends on your broker configuration.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() => _enableAuth = true);
+                  Navigator.pop(context);
+                },
+                child: const Text('Enable Auth'),
+              ),
+            ],
+          ),
+        );
+      });
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 
   // AUTO-RECONNECT FUNCTIONALITY
   void _setupAutoReconnect() {
@@ -1262,6 +1472,90 @@ SHA1: ${cert.sha1}
     );
   }
 
+
+
+
+
+void _showRenameTemplateDialog(MessageTemplate template) {
+  final nameController = TextEditingController(text: template.name);
+  
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Rename Template'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: 'Template Name',
+            hintText: 'Enter template name',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (nameController.text.trim().isNotEmpty) {
+                _renameTemplate(template, nameController.text.trim());
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Rename'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<void> _renameTemplate(MessageTemplate template, String newName) async {
+  try {
+    final updatedTemplate = MessageTemplate(
+      id: template.id,
+      name: newName,
+      topic: template.topic,
+      payload: template.payload,
+      qos: template.qos,
+      retain: template.retain,
+      createdAt: template.createdAt,
+    );
+    
+    await _templateHelper.updateTemplate(updatedTemplate);
+    final templates = await _templateHelper.getAllTemplates();
+    setState(() {
+      _templates = templates;
+      if (_currentTemplate?.id == template.id) {
+        _currentTemplate = updatedTemplate;
+      }
+    });
+    _logMessage('Templates', '✅ Renamed template to: $newName', isIncoming: false);
+  } catch (e) {
+    _logMessage('Templates', '❌ Error renaming template: $e', isIncoming: false);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   void _showRenameDialog(ConnectionProfile profile) {
     final nameController = TextEditingController(text: profile.name);
     
@@ -1341,8 +1635,12 @@ SHA1: ${cert.sha1}
 
   Future<void> _initializeProfiles() async {
     try {
+      _logMessage('Profiles', '🔄 Initializing profiles...', isIncoming: false);
       await _profileHelper.createDefaultProfiles();
       final profiles = await _profileHelper.getAllProfiles();
+
+       _logMessage('Profiles', '📊 Loaded ${profiles.length} profiles from DB', isIncoming: false);
+
       setState(() {
         _profiles = profiles;
       });
@@ -1489,79 +1787,129 @@ SHA1: ${cert.sha1}
 
 
 // Export Profiles & Templates - SIMPLE WORKING VERSION
+// Future<void> _exportProfilesAndTemplates() async {
+//   try {
+//     _logMessage('System', '📤 Exporting profiles and templates...', isIncoming: false);
+    
+//     final profilesJson = await _profileHelper.exportProfilesToJson();
+//     final templatesJson = await _templateHelper.exportTemplatesToJson();
+    
+//     final exportData = {
+//       'profiles': jsonDecode(profilesJson),
+//       'templates': jsonDecode(templatesJson),
+//       'exportDate': DateTime.now().toIso8601String(),
+//       'appVersion': 'MQTT Mobile App v1.0',
+//       'totalProfiles': _profiles.length,
+//       'totalTemplates': _templates.length,
+//     };
+    
+//     final String jsonString = jsonEncode(exportData);
+    
+//     // Get downloads directory
+//     final downloadsDir = await getDownloadsDirectory();
+//     if (downloadsDir == null) {
+//       _logMessage('System', '❌ Cannot access downloads directory', isIncoming: false);
+//       _logMessage('System', '💡 Please check app storage permissions in Settings', isIncoming: false);
+//       return;
+//     }
+    
+//     final timestamp = DateTime.now().millisecondsSinceEpoch;
+//     final formattedTime = DateTime.now().toString().replaceAll(RegExp(r'[:\-\. ]'), '_');
+//     final fileName = 'mqtt_backup_$formattedTime.json';
+//     final exportPath = path.join(downloadsDir.path, fileName);
+    
+//     // Write the file
+//     await File(exportPath).writeAsString(jsonString);
+    
+//     // Verify file was created
+//     final file = File(exportPath);
+//     final exists = await file.exists();
+    
+//     if (exists) {
+//       final fileSize = await file.length();
+//       final readableSize = _formatFileSize(fileSize);
+      
+//       // Show detailed success message in the log
+//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+//       _logMessage('System', '✅ ✅ ✅ BACKUP SUCCESSFULLY CREATED! ✅ ✅ ✅', isIncoming: false);
+//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+//       _logMessage('System', '📁 FILE NAME: $fileName', isIncoming: false);
+//       _logMessage('System', '📊 FILE SIZE: $readableSize', isIncoming: false);
+//       _logMessage('System', '👤 PROFILES: ${_profiles.length}', isIncoming: false);
+//       _logMessage('System', '📋 TEMPLATES: ${_templates.length}', isIncoming: false);
+//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+//       _logMessage('System', '📍 FULL PATH:', isIncoming: false);
+//       _logMessage('System', exportPath, isIncoming: false);
+//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+//       _logMessage('System', '🔍 HOW TO FIND THE FILE:', isIncoming: false);
+//       _logMessage('System', '1. Open FILE MANAGER app', isIncoming: false);
+//       _logMessage('System', '2. Go to INTERNAL STORAGE', isIncoming: false);
+//       _logMessage('System', '3. Open DOWNLOADS folder', isIncoming: false);
+//       _logMessage('System', '4. Look for: $fileName', isIncoming: false);
+//       _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+      
+//     } else {
+//       _logMessage('System', '❌ File creation failed - file does not exist', isIncoming: false);
+//     }
+    
+//   } catch (e) {
+//     _logMessage('System', '❌ Export error: $e', isIncoming: false);
+//     _logMessage('System', '💡 Troubleshooting steps:', isIncoming: false);
+//     _logMessage('System', '1. Go to Settings → Apps → MQTT App → Permissions', isIncoming: false);
+//     _logMessage('System', '2. Enable STORAGE permission', isIncoming: false);
+//     _logMessage('System', '3. Try again', isIncoming: false);
+//   }
+// }
+
 Future<void> _exportProfilesAndTemplates() async {
   try {
-    _logMessage('System', '📤 Exporting profiles and templates...', isIncoming: false);
+    _logMessage('System', '📤 Starting export...', isIncoming: false);
     
-    final profilesJson = await _profileHelper.exportProfilesToJson();
-    final templatesJson = await _templateHelper.exportTemplatesToJson();
+    // 1. Get ALL profiles directly from database
+    final allProfiles = await _profileHelper.getAllProfiles();
+    _logMessage('System', 'Found ${allProfiles.length} profiles to export', isIncoming: false);
     
+    // 2. Get ALL templates directly from database
+    final allTemplates = await _templateHelper.getAllTemplates();
+    _logMessage('System', 'Found ${allTemplates.length} templates to export', isIncoming: false);
+    
+    // 3. Create simple export data
     final exportData = {
-      'profiles': jsonDecode(profilesJson),
-      'templates': jsonDecode(templatesJson),
+      'profiles': allProfiles.map((p) => p.toMap()).toList(),
+      'templates': allTemplates.map((t) => t.toMap()).toList(),
       'exportDate': DateTime.now().toIso8601String(),
-      'appVersion': 'MQTT Mobile App v1.0',
-      'totalProfiles': _profiles.length,
-      'totalTemplates': _templates.length,
+      'appVersion': 'MQTT Mobile App',
     };
     
     final String jsonString = jsonEncode(exportData);
     
-    // Get downloads directory
+    // 4. Save to file
     final downloadsDir = await getDownloadsDirectory();
     if (downloadsDir == null) {
       _logMessage('System', '❌ Cannot access downloads directory', isIncoming: false);
-      _logMessage('System', '💡 Please check app storage permissions in Settings', isIncoming: false);
       return;
     }
     
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final formattedTime = DateTime.now().toString().replaceAll(RegExp(r'[:\-\. ]'), '_');
-    final fileName = 'mqtt_backup_$formattedTime.json';
+    final fileName = 'mqtt_backup_${DateTime.now().millisecondsSinceEpoch}.json';
     final exportPath = path.join(downloadsDir.path, fileName);
     
-    // Write the file
     await File(exportPath).writeAsString(jsonString);
     
-    // Verify file was created
+    // 5. Verify
     final file = File(exportPath);
-    final exists = await file.exists();
-    
-    if (exists) {
-      final fileSize = await file.length();
-      final readableSize = _formatFileSize(fileSize);
-      
-      // Show detailed success message in the log
-      _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-      _logMessage('System', '✅ ✅ ✅ BACKUP SUCCESSFULLY CREATED! ✅ ✅ ✅', isIncoming: false);
-      _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-      _logMessage('System', '📁 FILE NAME: $fileName', isIncoming: false);
-      _logMessage('System', '📊 FILE SIZE: $readableSize', isIncoming: false);
-      _logMessage('System', '👤 PROFILES: ${_profiles.length}', isIncoming: false);
-      _logMessage('System', '📋 TEMPLATES: ${_templates.length}', isIncoming: false);
-      _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-      _logMessage('System', '📍 FULL PATH:', isIncoming: false);
-      _logMessage('System', exportPath, isIncoming: false);
-      _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-      _logMessage('System', '🔍 HOW TO FIND THE FILE:', isIncoming: false);
-      _logMessage('System', '1. Open FILE MANAGER app', isIncoming: false);
-      _logMessage('System', '2. Go to INTERNAL STORAGE', isIncoming: false);
-      _logMessage('System', '3. Open DOWNLOADS folder', isIncoming: false);
-      _logMessage('System', '4. Look for: $fileName', isIncoming: false);
-      _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-      
-    } else {
-      _logMessage('System', '❌ File creation failed - file does not exist', isIncoming: false);
+    if (await file.exists()) {
+      _logMessage('System', '✅ Backup created successfully!', isIncoming: false);
+      _logMessage('System', '📁 File: $fileName', isIncoming: false);
+      _logMessage('System', '👤 Profiles: ${allProfiles.length}', isIncoming: false);
+      _logMessage('System', '📋 Templates: ${allTemplates.length}', isIncoming: false);
     }
     
   } catch (e) {
     _logMessage('System', '❌ Export error: $e', isIncoming: false);
-    _logMessage('System', '💡 Troubleshooting steps:', isIncoming: false);
-    _logMessage('System', '1. Go to Settings → Apps → MQTT App → Permissions', isIncoming: false);
-    _logMessage('System', '2. Enable STORAGE permission', isIncoming: false);
-    _logMessage('System', '3. Try again', isIncoming: false);
   }
 }
+
+
 
 // Helper function to format file size
 String _formatFileSize(int bytes) {
@@ -1573,9 +1921,32 @@ String _formatFileSize(int bytes) {
 
 
 
-// Import Profiles & Templates from JSON file
+
+Future<void> _clearDatabaseBeforeImport() async {
+  try {
+    // Clear profiles
+    final profileDb = await _profileHelper.database;
+    await profileDb.delete('profiles');
+    
+    // Clear templates  
+    final templateDb = await _templateHelper.database;
+    await templateDb.delete('templates');
+    
+    _logMessage('Import', '🧹 Cleared existing data before import', isIncoming: false);
+  } catch (e) {
+    _logMessage('Import', '⚠️ Error clearing database: $e', isIncoming: false);
+  }
+}
+
+
+
+// Import Profiles & Templates from JSON file - FIXED FOR BOTH ARRAY AND OBJECT
 // Future<void> _importProfilesAndTemplates() async {
+// // Add this line BEFORE the import loops:
+     
 //   try {
+    
+//     await _clearDatabaseBeforeImport();
 //     _logMessage('System', '📥 Starting import process...', isIncoming: false);
     
 //     // Pick JSON file
@@ -1590,31 +1961,78 @@ String _formatFileSize(int bytes) {
 //     }
     
 //     final filePath = result.files.single.path!;
+//     final fileName = result.files.single.name;
+    
+//     // Check if it's a JSON file by extension
+//     if (!fileName.toLowerCase().endsWith('.json')) {
+//       _logMessage('System', '❌ Selected file is not a JSON file: $fileName', isIncoming: false);
+//       _logMessage('System', '💡 Please select a .json backup file', isIncoming: false);
+//       return;
+//     }
+    
 //     final file = File(filePath);
 //     final content = await file.readAsString();
     
-//     _logMessage('System', '📥 Importing from: ${path.basename(filePath)}', isIncoming: false);
+//     _logMessage('System', '📥 Importing from: $fileName', isIncoming: false);
     
 //     // Parse JSON
-//     final data = jsonDecode(content);
+//     Map<String, dynamic> data;
+//     try {
+//       data = jsonDecode(content);
+//     } catch (e) {
+//       _logMessage('System', '❌ Invalid JSON file: $e', isIncoming: false);
+//       _logMessage('System', '💡 The file may be corrupted or in wrong format', isIncoming: false);
+//       return;
+//     }
     
-//     if (!data.containsKey('profiles') || !data.containsKey('templates')) {
+//     // FIXED: Handle both array and object structures
+//     List<dynamic> profilesList = [];
+//     List<dynamic> templatesList = [];
+    
+//     if (data.containsKey('profiles')) {
+//       if (data['profiles'] is List) {
+//         profilesList = data['profiles'];
+//       } else if (data['profiles'] is Map) {
+//         // Convert map to list
+//         profilesList = (data['profiles'] as Map).values.toList();
+//       }
+//     }
+    
+//     if (data.containsKey('templates')) {
+//       if (data['templates'] is List) {
+//         templatesList = data['templates'];
+//       } else if (data['templates'] is Map) {
+//         // Convert map to list
+//         templatesList = (data['templates'] as Map).values.toList();
+//       }
+//     }
+    
+//     // Validate backup file structure
+//     if (profilesList.isEmpty && templatesList.isEmpty) {
 //       _logMessage('System', '❌ Invalid backup file format', isIncoming: false);
-//       _logMessage('System', '💡 File should contain "profiles" and "templates" keys', isIncoming: false);
+//       _logMessage('System', '💡 No profiles or templates found in file', isIncoming: false);
 //       return;
 //     }
     
 //     // Show confirmation dialog
-//     bool confirm = await showDialog(
+//     final bool? confirm = await showDialog<bool>(
 //       context: context,
 //       builder: (context) => AlertDialog(
 //         title: const Text('Import Backup'),
-//         content: Text(
-//           'This will import:\n'
-//           '• ${data['profiles'].length} profile(s)\n'
-//           '• ${data['templates'].length} template(s)\n\n'
-//           'Existing data will be preserved.\n'
-//           'Continue?'
+//         content: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text('File: $fileName'),
+//             const SizedBox(height: 12),
+//             const Text('This will import:'),
+//             Text('• ${profilesList.length} profile(s)'),
+//             Text('• ${templatesList.length} template(s)'),
+//             const SizedBox(height: 12),
+//             const Text('Existing data will be preserved.'),
+//             const SizedBox(height: 8),
+//             const Text('Continue?', style: TextStyle(fontWeight: FontWeight.bold)),
+//           ],
 //         ),
 //         actions: [
 //           TextButton(
@@ -1627,34 +2045,54 @@ String _formatFileSize(int bytes) {
 //           ),
 //         ],
 //       ),
-//     ) ?? false;
+//     );
     
-//     if (!confirm) {
+//     if (confirm != true) {
 //       _logMessage('System', '❌ Import cancelled by user', isIncoming: false);
 //       return;
 //     }
     
+//     _logMessage('System', '🔄 Starting import process...', isIncoming: false);
+    
 //     // Import profiles
 //     int profileCount = 0;
-//     for (final profileData in data['profiles']) {
+//     int profileErrors = 0;
+    
+//     for (final profileData in profilesList) {
 //       try {
-//         final profile = ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
-//         await _profileHelper.insertProfile(profile);
-//         profileCount++;
+//         if (profileData is Map<String, dynamic>) {
+//           final profile = ConnectionProfile.fromMap(profileData);
+//           await _profileHelper.insertProfile(profile);
+//           profileCount++;
+//         } else if (profileData is Map) {
+//           final profile = ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
+//           await _profileHelper.insertProfile(profile);
+//           profileCount++;
+//         }
 //       } catch (e) {
-//         _logMessage('System', '⚠️ Failed to import one profile: $e', isIncoming: false);
+//         profileErrors++;
+//         _logMessage('System', '⚠️ Failed to import profile #$profileErrors: $e', isIncoming: false);
 //       }
 //     }
     
 //     // Import templates
 //     int templateCount = 0;
-//     for (final templateData in data['templates']) {
+//     int templateErrors = 0;
+    
+//     for (final templateData in templatesList) {
 //       try {
-//         final template = MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
-//         await _templateHelper.insertTemplate(template);
-//         templateCount++;
+//         if (templateData is Map<String, dynamic>) {
+//           final template = MessageTemplate.fromMap(templateData);
+//           await _templateHelper.insertTemplate(template);
+//           templateCount++;
+//         } else if (templateData is Map) {
+//           final template = MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
+//           await _templateHelper.insertTemplate(template);
+//           templateCount++;
+//         }
 //       } catch (e) {
-//         _logMessage('System', '⚠️ Failed to import one template: $e', isIncoming: false);
+//         templateErrors++;
+//         _logMessage('System', '⚠️ Failed to import template #$templateErrors: $e', isIncoming: false);
 //       }
 //     }
     
@@ -1662,11 +2100,23 @@ String _formatFileSize(int bytes) {
 //     await _initializeProfiles();
 //     await _initializeTemplates();
     
-//     _logMessage('System', '✅ Import completed successfully!', isIncoming: false);
-//     _logMessage('System', '📊 Imported: $profileCount profiles, $templateCount templates', isIncoming: false);
+//     // Show import summary
+//     _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+//     _logMessage('System', '✅ IMPORT COMPLETED SUCCESSFULLY! ✅', isIncoming: false);
+//     _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+//     _logMessage('System', '📊 IMPORT SUMMARY:', isIncoming: false);
+//     _logMessage('System', '• Profiles imported: $profileCount/${profilesList.length}', isIncoming: false);
+//     _logMessage('System', '• Templates imported: $templateCount/${templatesList.length}', isIncoming: false);
+//     if (profileErrors > 0 || templateErrors > 0) {
+//       _logMessage('System', '• Errors: $profileErrors profile(s), $templateErrors template(s)', isIncoming: false);
+//     }
+//     _logMessage('System', '════════════════════════════════════════', isIncoming: false);
+//     _logMessage('System', '💡 You can now use the imported connections', isIncoming: false);
+//     _logMessage('System', '   in the "Connection Profiles" section', isIncoming: false);
     
 //   } catch (e) {
 //     _logMessage('System', '❌ Import error: $e', isIncoming: false);
+//     _logMessage('System', '💡 Please make sure you selected a valid backup file', isIncoming: false);
 //   }
 // }
 
@@ -1675,96 +2125,31 @@ String _formatFileSize(int bytes) {
 
 
 
-// Import Profiles & Templates from JSON file - FIXED FOR BOTH ARRAY AND OBJECT
 Future<void> _importProfilesAndTemplates() async {
   try {
-    _logMessage('System', '📥 Starting import process...', isIncoming: false);
+    _logMessage('System', '📥 Starting import...', isIncoming: false);
     
-    // Pick JSON file
+    // Pick file
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.any,
       allowMultiple: false,
     );
     
-    if (result == null || result.files.single.path == null) {
-      _logMessage('System', '❌ No file selected', isIncoming: false);
-      return;
-    }
+    if (result == null) return;
     
     final filePath = result.files.single.path!;
-    final fileName = result.files.single.name;
+    final content = await File(filePath).readAsString();
+    final data = jsonDecode(content);
     
-    // Check if it's a JSON file by extension
-    if (!fileName.toLowerCase().endsWith('.json')) {
-      _logMessage('System', '❌ Selected file is not a JSON file: $fileName', isIncoming: false);
-      _logMessage('System', '💡 Please select a .json backup file', isIncoming: false);
-      return;
-    }
+    // Show confirmation
+    final profilesList = data['profiles'] as List;
+    final templatesList = data['templates'] as List;
     
-    final file = File(filePath);
-    final content = await file.readAsString();
-    
-    _logMessage('System', '📥 Importing from: $fileName', isIncoming: false);
-    
-    // Parse JSON
-    Map<String, dynamic> data;
-    try {
-      data = jsonDecode(content);
-    } catch (e) {
-      _logMessage('System', '❌ Invalid JSON file: $e', isIncoming: false);
-      _logMessage('System', '💡 The file may be corrupted or in wrong format', isIncoming: false);
-      return;
-    }
-    
-    // FIXED: Handle both array and object structures
-    List<dynamic> profilesList = [];
-    List<dynamic> templatesList = [];
-    
-    if (data.containsKey('profiles')) {
-      if (data['profiles'] is List) {
-        profilesList = data['profiles'];
-      } else if (data['profiles'] is Map) {
-        // Convert map to list
-        profilesList = (data['profiles'] as Map).values.toList();
-      }
-    }
-    
-    if (data.containsKey('templates')) {
-      if (data['templates'] is List) {
-        templatesList = data['templates'];
-      } else if (data['templates'] is Map) {
-        // Convert map to list
-        templatesList = (data['templates'] as Map).values.toList();
-      }
-    }
-    
-    // Validate backup file structure
-    if (profilesList.isEmpty && templatesList.isEmpty) {
-      _logMessage('System', '❌ Invalid backup file format', isIncoming: false);
-      _logMessage('System', '💡 No profiles or templates found in file', isIncoming: false);
-      return;
-    }
-    
-    // Show confirmation dialog
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Import Backup'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('File: $fileName'),
-            const SizedBox(height: 12),
-            const Text('This will import:'),
-            Text('• ${profilesList.length} profile(s)'),
-            Text('• ${templatesList.length} template(s)'),
-            const SizedBox(height: 12),
-            const Text('Existing data will be preserved.'),
-            const SizedBox(height: 8),
-            const Text('Continue?', style: TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
+        content: Text('Import ${profilesList.length} profiles and ${templatesList.length} templates?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1778,79 +2163,51 @@ Future<void> _importProfilesAndTemplates() async {
       ),
     );
     
-    if (confirm != true) {
-      _logMessage('System', '❌ Import cancelled by user', isIncoming: false);
-      return;
-    }
+    if (confirm != true) return;
     
-    _logMessage('System', '🔄 Starting import process...', isIncoming: false);
+    // CLEAR DATABASE FIRST
+    _logMessage('System', '🧹 Clearing existing data...', isIncoming: false);
+    final profileDb = await _profileHelper.database;
+    await profileDb.delete('profiles');
+    final templateDb = await _templateHelper.database;
+    await templateDb.delete('templates');
     
-    // Import profiles
+    // IMPORT PROFILES
     int profileCount = 0;
-    int profileErrors = 0;
-    
     for (final profileData in profilesList) {
       try {
-        if (profileData is Map<String, dynamic>) {
-          final profile = ConnectionProfile.fromMap(profileData);
-          await _profileHelper.insertProfile(profile);
-          profileCount++;
-        } else if (profileData is Map) {
-          final profile = ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
-          await _profileHelper.insertProfile(profile);
-          profileCount++;
-        }
+        final profile = ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
+        await _profileHelper.insertProfile(profile);
+        profileCount++;
       } catch (e) {
-        profileErrors++;
-        _logMessage('System', '⚠️ Failed to import profile #$profileErrors: $e', isIncoming: false);
+        _logMessage('System', '⚠️ Failed to import profile: $e', isIncoming: false);
       }
     }
     
-    // Import templates
+    // IMPORT TEMPLATES
     int templateCount = 0;
-    int templateErrors = 0;
-    
     for (final templateData in templatesList) {
       try {
-        if (templateData is Map<String, dynamic>) {
-          final template = MessageTemplate.fromMap(templateData);
-          await _templateHelper.insertTemplate(template);
-          templateCount++;
-        } else if (templateData is Map) {
-          final template = MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
-          await _templateHelper.insertTemplate(template);
-          templateCount++;
-        }
+        final template = MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
+        await _templateHelper.insertTemplate(template);
+        templateCount++;
       } catch (e) {
-        templateErrors++;
-        _logMessage('System', '⚠️ Failed to import template #$templateErrors: $e', isIncoming: false);
+        _logMessage('System', '⚠️ Failed to import template: $e', isIncoming: false);
       }
     }
     
-    // Refresh data
+    // REFRESH UI
     await _initializeProfiles();
     await _initializeTemplates();
     
-    // Show import summary
-    _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-    _logMessage('System', '✅ IMPORT COMPLETED SUCCESSFULLY! ✅', isIncoming: false);
-    _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-    _logMessage('System', '📊 IMPORT SUMMARY:', isIncoming: false);
-    _logMessage('System', '• Profiles imported: $profileCount/${profilesList.length}', isIncoming: false);
-    _logMessage('System', '• Templates imported: $templateCount/${templatesList.length}', isIncoming: false);
-    if (profileErrors > 0 || templateErrors > 0) {
-      _logMessage('System', '• Errors: $profileErrors profile(s), $templateErrors template(s)', isIncoming: false);
-    }
-    _logMessage('System', '════════════════════════════════════════', isIncoming: false);
-    _logMessage('System', '💡 You can now use the imported connections', isIncoming: false);
-    _logMessage('System', '   in the "Connection Profiles" section', isIncoming: false);
+    _logMessage('System', '✅ Import complete!', isIncoming: false);
+    _logMessage('System', '👤 Profiles imported: $profileCount', isIncoming: false);
+    _logMessage('System', '📋 Templates imported: $templateCount', isIncoming: false);
     
   } catch (e) {
     _logMessage('System', '❌ Import error: $e', isIncoming: false);
-    _logMessage('System', '💡 Please make sure you selected a valid backup file', isIncoming: false);
   }
 }
-
 
 
 
@@ -2043,11 +2400,14 @@ Future<void> _shareBackupFile() async {
 
   // FIXED CONNECT METHOD WITH SSL/TLS CERTIFICATE SUPPORT
   Future<void> _connect() async {
+
+
     if (_connectionState == ConnectionState.connected || 
         _connectionState == ConnectionState.connecting) {
       _logMessage('Connection', 'Already connected or connecting', isIncoming: false);
       return;
     }
+
 
     _cancelAutoReconnect();
     setState(() => _connectionState = ConnectionState.connecting);
@@ -2481,71 +2841,276 @@ Valid Until: ${cert.endValidity}
     _logMessage('Profiles', '✅ Loaded profile: ${profile.name}', isIncoming: false);
   }
 
-  Future<void> _saveCurrentAsProfile() async {
-    String suggestName() {
-      final url = urlCtrl.text.trim();
-      if (url.contains('mosquitto')) return 'Mosquitto Server';
-      if (url.contains('localhost')) return 'Local Server';
-      if (url.contains('hivemq')) return 'HiveMQ';
-      if (url.contains('emqx')) return 'EMQX';
-      
-      final uri = Uri.tryParse(url);
-      if (uri != null && uri.host.isNotEmpty) {
-        return '${uri.host} Server';
-      }
-      
-      return 'Connection ${_profiles.length + 1}';
-    }
 
-    String brokerUrl = urlCtrl.text.trim();
-    if (_enableTLS) {
-      if (brokerUrl.startsWith('tcp://')) {
-        brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
-      } else if (brokerUrl.startsWith('ws://')) {
-        brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
-      } else if (!brokerUrl.startsWith('ssl://') && !brokerUrl.startsWith('wss://')) {
-        brokerUrl = 'ssl://$brokerUrl';
-      }
-    }
 
-    final profile = ConnectionProfile(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: suggestName(),
-      brokerUrl: brokerUrl,
-      clientId: clientIdCtrl.text.trim(),
-      username: usernameCtrl.text.trim(),
-      password: passwordCtrl.text.trim(),
-      enableAuth: _enableAuth,
-      cleanSession: _cleanSession,
-      keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
-      defaultQos: _qos.index,
-      enableWill: _enableWillMessage,
-      willTopic: willTopicCtrl.text.trim(),
-      willPayload: willPayloadCtrl.text.trim(),
-      willQos: _willQos.index,
-      willRetain: _willRetain,
-      createdAt: DateTime.now(),
-      // Certificate fields
-      certificateType: _certificateType,
-      caCertificatePath: _caCertificatePath,
-      clientCertificatePath: _clientCertificatePath,
-      clientPrivateKeyPath: _clientPrivateKeyPath,
-      clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
-      verifyCertificate: _verifyCertificate,
-    );
+
+  // Future<void> _saveCurrentAsProfile() async {
+  //   String suggestName() {
+  //     final url = urlCtrl.text.trim();
+  //     if (url.contains('mosquitto')) return 'Mosquitto Server';
+  //     if (url.contains('localhost')) return 'Local Server';
+  //     if (url.contains('hivemq')) return 'HiveMQ';
+  //     if (url.contains('emqx')) return 'EMQX';
+      
+  //     final uri = Uri.tryParse(url);
+  //     if (uri != null && uri.host.isNotEmpty) {
+  //       return '${uri.host} Server';
+  //     }
+      
+  //     return 'Connection ${_profiles.length + 1}';
+  //   }
+
+  //   String brokerUrl = urlCtrl.text.trim();
+  //   if (_enableTLS) {
+  //     if (brokerUrl.startsWith('tcp://')) {
+  //       brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
+  //     } else if (brokerUrl.startsWith('ws://')) {
+  //       brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
+  //     } else if (!brokerUrl.startsWith('ssl://') && !brokerUrl.startsWith('wss://')) {
+  //       brokerUrl = 'ssl://$brokerUrl';
+  //     }
+  //   }
+
+  //   final profile = ConnectionProfile(
+  //     id: DateTime.now().millisecondsSinceEpoch.toString(),
+  //     name: suggestName(),
+  //     brokerUrl: brokerUrl,
+  //     clientId: clientIdCtrl.text.trim(),
+  //     username: usernameCtrl.text.trim(),
+  //     password: passwordCtrl.text.trim(),
+  //     enableAuth: _enableAuth,
+  //     cleanSession: _cleanSession,
+  //     keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
+  //     defaultQos: _qos.index,
+  //     enableWill: _enableWillMessage,
+  //     willTopic: willTopicCtrl.text.trim(),
+  //     willPayload: willPayloadCtrl.text.trim(),
+  //     willQos: _willQos.index,
+  //     willRetain: _willRetain,
+  //     createdAt: DateTime.now(),
+  //     // Certificate fields
+  //     certificateType: _certificateType,
+  //     caCertificatePath: _caCertificatePath,
+  //     clientCertificatePath: _clientCertificatePath,
+  //     clientPrivateKeyPath: _clientPrivateKeyPath,
+  //     clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
+  //     verifyCertificate: _verifyCertificate,
+  //   );
     
-    try {
-      await _profileHelper.insertProfile(profile);
-      final profiles = await _profileHelper.getAllProfiles();
-      setState(() {
-        _profiles = profiles;
-        _currentProfile = profile;
-      });
-      _logMessage('Profiles', '✅ Profile saved: ${profile.name}', isIncoming: false);
-    } catch (e) {
-      _logMessage('Profiles', '❌ Error saving profile: $e', isIncoming: false);
+  //   try {
+  //     await _profileHelper.insertProfile(profile);
+  //     final profiles = await _profileHelper.getAllProfiles();
+  //     setState(() {
+  //       _profiles = profiles;
+  //       _currentProfile = profile;
+  //     });
+  //     _logMessage('Profiles', '✅ Profile saved: ${profile.name}', isIncoming: false);
+  //   } catch (e) {
+  //     _logMessage('Profiles', '❌ Error saving profile: $e', isIncoming: false);
+  //   }
+  // }
+
+
+
+// Future<void> _saveCurrentAsProfile() async {
+//   _logMessage('Profiles', '🔄 Starting to save profile...', isIncoming: false);
+  
+//   String suggestName() {
+//     final url = urlCtrl.text.trim();
+//     if (url.contains('mosquitto')) return 'Mosquitto Server';
+//     if (url.contains('localhost')) return 'Local Server';
+//     if (url.contains('hivemq')) return 'HiveMQ';
+//     if (url.contains('emqx')) return 'EMQX';
+    
+//     final uri = Uri.tryParse(url);
+//     if (uri != null && uri.host.isNotEmpty) {
+//       return '${uri.host} Server';
+//     }
+    
+//     return 'Connection ${_profiles.length + 1}';
+//   }
+
+//   String brokerUrl = urlCtrl.text.trim();
+//   if (_enableTLS) {
+//     if (brokerUrl.startsWith('tcp://')) {
+//       brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
+//     } else if (brokerUrl.startsWith('ws://')) {
+//       brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
+//     } else if (!brokerUrl.startsWith('ssl://') && !brokerUrl.startsWith('wss://')) {
+//       brokerUrl = 'ssl://$brokerUrl';
+//     }
+//   }
+
+//   final profile = ConnectionProfile(
+//     id: DateTime.now().millisecondsSinceEpoch.toString(), // Make sure this is unique!
+//     name: suggestName(),
+//     brokerUrl: brokerUrl,
+//     clientId: clientIdCtrl.text.trim(),
+//     username: usernameCtrl.text.trim(),
+//     password: passwordCtrl.text.trim(),
+//     enableAuth: _enableAuth,
+//     cleanSession: _cleanSession,
+//     keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
+//     defaultQos: _qos.index,
+//     enableWill: _enableWillMessage,
+//     willTopic: willTopicCtrl.text.trim(),
+//     willPayload: willPayloadCtrl.text.trim(),
+//     willQos: _willQos.index,
+//     willRetain: _willRetain,
+//     createdAt: DateTime.now(),
+//     // Certificate fields
+//     certificateType: _certificateType,
+//     caCertificatePath: _caCertificatePath,
+//     clientCertificatePath: _clientCertificatePath,
+//     clientPrivateKeyPath: _clientPrivateKeyPath,
+//     clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
+//     verifyCertificate: _verifyCertificate,
+//   );
+  
+//   _logMessage('Profiles', '📝 Created profile object: ${profile.name} (ID: ${profile.id})', isIncoming: false);
+  
+//   try {
+//     final result = await _profileHelper.insertProfile(profile);
+//     _logMessage('Profiles', '✅ Database insert result: $result', isIncoming: false);
+    
+//     final profiles = await _profileHelper.getAllProfiles();
+//     _logMessage('Profiles', '📊 Total profiles after save: ${profiles.length}', isIncoming: false);
+    
+//     setState(() {
+//       _profiles = profiles;
+//       _currentProfile = profile;
+//     });
+//     _logMessage('Profiles', '✅ Profile saved: ${profile.name}', isIncoming: false);
+//   } catch (e) {
+//     _logMessage('Profiles', '❌ Error saving profile: $e', isIncoming: false);
+//     _logMessage('Profiles', '💡 Stack trace: ${e.toString()}', isIncoming: false);
+//   }
+// }
+
+
+
+
+
+
+Future<void> _saveCurrentAsProfile() async {
+  _logMessage('Profiles', '=== START SAVE PROFILE ===', isIncoming: false);
+  
+  
+  String suggestName() {
+    final url = urlCtrl.text.trim();
+    _logMessage('Profiles', 'URL for name suggestion: $url', isIncoming: false);
+    
+    if (url.contains('mosquitto')) return 'Mosquitto Server';
+    if (url.contains('localhost')) return 'Local Server';
+    if (url.contains('hivemq')) return 'HiveMQ';
+    if (url.contains('emqx')) return 'EMQX';
+    
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.host.isNotEmpty) {
+      return '${uri.host} Server';
+    }
+    
+    return 'Connection ${_profiles.length + 1}';
+  }
+
+  String brokerUrl = urlCtrl.text.trim();
+  _logMessage('Profiles', 'Original URL: $brokerUrl', isIncoming: false);
+  
+  if (_enableTLS) {
+    if (brokerUrl.startsWith('tcp://')) {
+      brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
+    } else if (brokerUrl.startsWith('ws://')) {
+      brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
+    } else if (!brokerUrl.startsWith('ssl://') && !brokerUrl.startsWith('wss://')) {
+      brokerUrl = 'ssl://$brokerUrl';
     }
   }
+  
+  _logMessage('Profiles', 'Final broker URL: $brokerUrl', isIncoming: false);
+  
+  // Generate a unique ID
+  final String profileId = DateTime.now().millisecondsSinceEpoch.toString();
+  final String profileName = suggestName();
+  
+  _logMessage('Profiles', 'Creating profile with ID: $profileId, Name: $profileName', isIncoming: false);
+
+  final profile = ConnectionProfile(
+    id: profileId,
+    name: profileName,
+    brokerUrl: brokerUrl,
+    clientId: clientIdCtrl.text.trim(),
+    username: usernameCtrl.text.trim(),
+    password: passwordCtrl.text.trim(),
+    enableAuth: _enableAuth,
+    cleanSession: _cleanSession,
+    keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
+    defaultQos: _qos.index,
+    enableWill: _enableWillMessage,
+    willTopic: willTopicCtrl.text.trim(),
+    willPayload: willPayloadCtrl.text.trim(),
+    willQos: _willQos.index,
+    willRetain: _willRetain,
+    createdAt: DateTime.now(),
+    certificateType: _certificateType,
+    caCertificatePath: _caCertificatePath,
+    clientCertificatePath: _clientCertificatePath,
+    clientPrivateKeyPath: _clientPrivateKeyPath,
+    clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
+    verifyCertificate: _verifyCertificate,
+  );
+  
+  _logMessage('Profiles', 'Profile object created successfully', isIncoming: false);
+  
+  try {
+    _logMessage('Profiles', 'Attempting to insert into database...', isIncoming: false);
+    
+    // Get database count BEFORE insert
+    final profilesBefore = await _profileHelper.getAllProfiles();
+    _logMessage('Profiles', 'Profiles in DB before insert: ${profilesBefore.length}', isIncoming: false);
+    
+    final result = await _profileHelper.insertProfile(profile);
+    _logMessage('Profiles', 'Database insert returned: $result (1 = success)', isIncoming: false);
+    
+    // Get database count AFTER insert
+    final profilesAfter = await _profileHelper.getAllProfiles();
+    _logMessage('Profiles', 'Profiles in DB after insert: ${profilesAfter.length}', isIncoming: false);
+    
+    // Log all profiles
+    for (int i = 0; i < profilesAfter.length; i++) {
+      _logMessage('Profiles', '  Profile $i: ${profilesAfter[i].name} (ID: ${profilesAfter[i].id})', isIncoming: false);
+    }
+    
+    setState(() {
+      _profiles = profilesAfter;
+      _currentProfile = profile;
+    });
+    
+    _logMessage('Profiles', 'UI updated with ${_profiles.length} profiles', isIncoming: false);
+    _logMessage('Profiles', '✅ Profile saved: ${profile.name}', isIncoming: false);
+    
+  } catch (e) {
+    _logMessage('Profiles', '❌ CRITICAL ERROR saving profile: $e', isIncoming: false);
+    if (e is DatabaseException) {
+      _logMessage('Profiles', 'Database error details: ${e.toString()}', isIncoming: false);
+    }
+  }
+  
+  _logMessage('Profiles', '=== END SAVE PROFILE ===', isIncoming: false);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   Future<void> _updateCurrentProfile() async {
     if (_currentProfile == null) return;
@@ -2589,21 +3154,110 @@ Valid Until: ${cert.endValidity}
     }
   }
 
-  void _deleteProfile(ConnectionProfile profile) async {
-    try {
-      await _profileHelper.deleteProfile(profile.id);
-      final profiles = await _profileHelper.getAllProfiles();
-      setState(() {
-        _profiles = profiles;
-        if (_currentProfile?.id == profile.id) {
-          _currentProfile = null;
-        }
+  // void _deleteProfile(ConnectionProfile profile) async {
+  //   try {
+  //     await _profileHelper.deleteProfile(profile.id);
+  //     final profiles = await _profileHelper.getAllProfiles();
+  //     setState(() {
+  //       _profiles = profiles;
+  //       if (_currentProfile?.id == profile.id) {
+  //         _currentProfile = null;
+  //       }
+  //     });
+  //     _logMessage('Profiles', '🗑️ Deleted profile: ${profile.name}', isIncoming: false);
+  //   } catch (e) {
+  //     _logMessage('Profiles', '❌ Error deleting profile: $e', isIncoming: false);
+  //   }
+  // }
+
+
+
+
+
+Future<void> _deleteProfile(ConnectionProfile profile) async {
+  try {
+    await _profileHelper.deleteProfile(profile.id);
+    final profiles = await _profileHelper.getAllProfiles();
+    
+    // Check if we're deleting the currently loaded profile
+    final bool isCurrentProfile = _currentProfile?.id == profile.id;
+    
+    setState(() {
+      _profiles = profiles;
+      if (isCurrentProfile) {
+        _currentProfile = null;
+        // Clear UI fields or load another profile
+        _clearProfileFields();
+      }
+    });
+    
+    _logMessage('Profiles', '🗑️ Deleted profile: ${profile.name}', isIncoming: false);
+    
+    // If we deleted the current profile, load the first available one
+    if (isCurrentProfile && profiles.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadProfile(profiles.first);
       });
-      _logMessage('Profiles', '🗑️ Deleted profile: ${profile.name}', isIncoming: false);
-    } catch (e) {
-      _logMessage('Profiles', '❌ Error deleting profile: $e', isIncoming: false);
     }
+    
+  } catch (e) {
+    _logMessage('Profiles', '❌ Error deleting profile: $e', isIncoming: false);
   }
+}
+
+// Add this helper method to clear profile fields
+void _clearProfileFields() {
+  setState(() {
+    urlCtrl.text = 'tcp://test.mosquitto.org:1883'; // Default URL
+    clientIdCtrl.text = 'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(4)}';
+    usernameCtrl.text = '';
+    passwordCtrl.text = '';
+    _enableAuth = false;
+    _cleanSession = true;
+    keepAliveCtrl.text = '60';
+    _qos = MqttQos.atMostOnce;
+    _enableWillMessage = false;
+    willTopicCtrl.text = 'device/status';
+    willPayloadCtrl.text = 'offline';
+    _willQos = MqttQos.atMostOnce;
+    _willRetain = false;
+    _retainMessage = false;
+    _enableTLS = false;
+    _certificateType = CertificateType.none;
+    _clearCertificateFiles();
+  });
+  _logMessage('Profiles', '🧹 Cleared profile fields', isIncoming: false);
+}
+
+
+
+
+
+
+
+
+
+Future<void> _deleteAllProfiles() async {
+  try {
+    final db = await _profileHelper.database;
+    await db.delete('profiles');
+    final profiles = await _profileHelper.getAllProfiles();
+    setState(() {
+      _profiles = profiles;
+      _currentProfile = null;
+      _clearProfileFields(); // Clear UI fields
+    });
+    _logMessage('Profiles', '🧹 All profiles deleted', isIncoming: false);
+    
+    // Recreate default profile
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeProfiles();
+    });
+    
+  } catch (e) {
+    _logMessage('Profiles', '❌ Error deleting all profiles: $e', isIncoming: false);
+  }
+}
 
 
 
@@ -2758,12 +3412,6 @@ Valid Until: ${cert.endValidity}
             Text('📤 Messages Sent: $messagesSent', style: const TextStyle(fontSize: 12)),
             Text('🔔 Active Subscriptions: ${_subscriptions.length}', style: const TextStyle(fontSize: 12)),
             Text('🔄 Reconnect Attempts: $_reconnectAttempts/$_maxReconnectAttempts', style: const TextStyle(fontSize: 12)),
-            if (_connectionState == ConnectionState.connected) 
-              Text('⏱️ Uptime: ${_formatDuration(_connectionUptime)}', style: const TextStyle(fontSize: 12)),
-            if (_enableWillMessage)
-              const Text('⚰️ Will Message: Enabled', style: TextStyle(fontSize: 12, color: Colors.orange)),
-            if (_certificateType != CertificateType.none)
-              Text('🔐 Certificate: ${_getCertificateTypeName()}', style: const TextStyle(fontSize: 12, color: Colors.green)),
           ],
         ),
       ),
@@ -2824,6 +3472,8 @@ Valid Until: ${cert.endValidity}
     }
   }
 
+
+
   @override
   void dispose() {
     _reconnectTimer?.cancel();
@@ -2872,21 +3522,31 @@ Valid Until: ${cert.endValidity}
           backgroundColor: _isDarkMode ? Colors.grey[800] : Colors.blue,
           foregroundColor: Colors.white,
           actions: [
+
+            // ADD THIS HELP BUTTON HERE
+            IconButton(
+               icon: const Icon(Icons.help_outline),
+               onPressed: _showBrokerHelp,
+               tooltip: 'MQTT Ports & Authentication Help',
+            ),
             IconButton(
               icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
               onPressed: () => setState(() => _isDarkMode = !_isDarkMode),
               tooltip: _isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
             ),
+
             IconButton(
               icon: const Icon(Icons.download),
               onPressed: _exportDatabase,
-              tooltip: 'Export Database',
+              tooltip: 'Export Message History',
             ),
+
             IconButton(
               icon: const Icon(Icons.clear_all),
               onPressed: _clearMessages,
               tooltip: 'Clear Messages',
             ),
+            
             if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
               IconButton(
                 icon: const Icon(Icons.refresh),
@@ -2911,6 +3571,13 @@ Valid Until: ${cert.endValidity}
               },
               tooltip: 'Debug Connection',
             ),
+
+
+            IconButton(
+      icon: const Icon(Icons.storage),
+      onPressed: _debugDatabaseContents,
+      tooltip: 'Debug Database',
+    ),
           ],
         ),
         body: Padding(
@@ -2992,6 +3659,29 @@ Valid Until: ${cert.endValidity}
                           spacing: 8,
                           runSpacing: 8,
                           children: [
+
+                               
+
+                               ActionChip(
+  avatar: const Icon(Icons.warning_amber, size: 16),
+  label: const Text('EMQX 1884 (Test)'),
+  backgroundColor: Colors.orange.shade100,
+  labelStyle: const TextStyle(color: Colors.orange),
+  onPressed: () {
+    urlCtrl.text = 'tcp://broker.emqx.io:1884';
+    _enableAuth = true;
+    usernameCtrl.text = 'emqx_test';
+    passwordCtrl.text = 'emqx_test';
+    _logMessage('Test', 
+        '⚠️ Testing EMQX port 1884\n'
+        'Note: This port may not work as EMQX changes configurations.\n'
+        'This demonstrates how SOME brokers use port 1884 for auth.',
+        isIncoming: false);
+  },
+),
+
+
+
                             ActionChip(
                               avatar: const Icon(Icons.play_arrow, size: 16),
                               label: const Text('Mosquitto TCP'),
@@ -3052,6 +3742,7 @@ Valid Until: ${cert.endValidity}
                                 _logMessage('Test', 'Set to EMQX SSL broker with self-signed certificates', isIncoming: false);
                               },
                             ),
+
                           ],
                         ),
                       ],
@@ -3102,22 +3793,47 @@ Valid Until: ${cert.endValidity}
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
-                              children: _templates.map((template) => ActionChip(
-                                avatar: _currentTemplate?.id == template.id 
-                                    ? const Icon(Icons.check, size: 16, color: Colors.white)
-                                    : const Icon(Icons.description, size: 16),
-                                label: Text(template.name),
-                                backgroundColor: _currentTemplate?.id == template.id 
-                                    ? Colors.purple 
-                                    : Colors.purple.shade100,
-                                labelStyle: TextStyle(
-                                  color: _currentTemplate?.id == template.id 
-                                      ? Colors.white 
-                                      : Colors.purple,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                onPressed: () => _loadTemplate(template),
-                              )).toList(),
+
+                              // children: _templates.map((template) => ActionChip(
+                              //   avatar: _currentTemplate?.id == template.id 
+                              //       ? const Icon(Icons.check, size: 16, color: Colors.white)
+                              //       : const Icon(Icons.description, size: 16),
+                              //   label: Text(template.name),
+                              //   backgroundColor: _currentTemplate?.id == template.id 
+                              //       ? Colors.purple 
+                              //       : Colors.purple.shade100,
+                              //   labelStyle: TextStyle(
+                              //     color: _currentTemplate?.id == template.id 
+                              //         ? Colors.white 
+                              //         : Colors.purple,
+                              //     fontWeight: FontWeight.w500,
+                              //   ),
+                              //   onPressed: () => _loadTemplate(template),
+                              // )).toList(),
+
+
+
+                                 children: _templates.map((template) => GestureDetector(
+    onLongPress: () => _showRenameTemplateDialog(template),
+    child: ActionChip(
+      avatar: _currentTemplate?.id == template.id 
+          ? const Icon(Icons.check, size: 16, color: Colors.white)
+          : const Icon(Icons.description, size: 16),
+      label: Text(template.name),
+      backgroundColor: _currentTemplate?.id == template.id 
+          ? Colors.purple 
+          : Colors.purple.shade100,
+      labelStyle: TextStyle(
+        color: _currentTemplate?.id == template.id 
+            ? Colors.white 
+            : Colors.purple,
+        fontWeight: FontWeight.w500,
+      ),
+      onPressed: () => _loadTemplate(template),
+    ),
+  )).toList(),
+
+
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -3139,6 +3855,12 @@ Valid Until: ${cert.endValidity}
                               ),
                               const SizedBox(width: 8),
                               if (_currentTemplate != null) ...[
+                                 IconButton(
+                                     icon: const Icon(Icons.edit, color: Colors.blue),
+                                     onPressed: () => _showRenameTemplateDialog(_currentTemplate!),
+                                     tooltip: 'Rename Current Template',
+                                   ),
+
                                 IconButton(
                                   icon: const Icon(Icons.delete, color: Colors.red),
                                   onPressed: () => _deleteTemplate(_currentTemplate!),
@@ -3160,6 +3882,7 @@ Valid Until: ${cert.endValidity}
                   elevation: 4,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
+                    
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3216,8 +3939,28 @@ Valid Until: ${cert.endValidity}
                                 ),
                               )).toList(),
                             ),
-                            const SizedBox(height: 12),
+                           
                           ],
+                          // === ADD THIS LOAD DEFAULT BUTTON HERE ===
+                          
+                           const SizedBox(height: 12),
+    if (_profiles.isNotEmpty && _currentProfile == null) ...[
+      SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () => _loadProfile(_profiles.first),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.purple,
+            side: const BorderSide(color: Colors.purple),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+          ),
+          icon: const Icon(Icons.restore, size: 16),
+          label: const Text('LOAD DEFAULT PROFILE'),
+        ),
+      ),
+      const SizedBox(height: 12),
+    ],
+    // === END OF ADDED CODE ===
 
 
 
@@ -4033,6 +4776,8 @@ Card(
                             ),
                           ),
                           keyboardType: TextInputType.url,
+                    
+                          
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -4804,12 +5549,12 @@ Card(
     child: Column(
       children: [
         const Text(
-          'Backup & Restore',
+          'Backup & Restore Connections',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Save or load your connections',
+          'Export/Import connection profiles and message templates',
           style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
         const SizedBox(height: 12),
@@ -4824,7 +5569,7 @@ Card(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 icon: const Icon(Icons.backup, size: 16),
-                label: const Text('EXPORT BACKUP'),
+                label: const Text('EXPORT CONNECTIONS'),
               ),
             ),
             const SizedBox(width: 8),
