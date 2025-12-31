@@ -3554,6 +3554,9 @@ Future<void> _deleteAllProfiles() async {
                             ),
                           ],
                         ),
+
+
+
                         if (_showTemplates) ...[
                           const SizedBox(height: 12),
                           if (_templates.isEmpty) 
@@ -4808,7 +4811,7 @@ Card(
             // Add dropdown arrow if there are subscriptions
             suffixIcon: _subscriptions.isNotEmpty
                 ? PopupMenuButton<String>(
-                    icon: Icon(Icons.arrow_drop_down, color: Colors.purple),
+                    icon: const Icon(Icons.arrow_drop_down, color: Colors.purple),
                     itemBuilder: (context) {
                       return _subscriptions.map((sub) {
                         return PopupMenuItem(
@@ -4829,6 +4832,41 @@ Card(
 
 
                         const SizedBox(height: 12),
+
+    // // ========== ADD TEMPLATE SELECTION ==========
+    //     if (_templates.isNotEmpty) ...[
+    //       const Text(
+    //         'Quick Load from Templates:',
+    //         style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+    //       ),
+    //       const SizedBox(height: 8),
+    //       Wrap(
+    //         spacing: 6,
+    //         runSpacing: 6,
+    //         children: _templates.map((template) => FilterChip(
+    //           label: Text(
+    //             template.name,
+    //             style: const TextStyle(fontSize: 11),
+    //           ),
+    //           onSelected: (selected) {
+    //             setState(() {
+    //               pubTopicCtrl.text = template.topic;
+    //               payloadCtrl.text = template.payload;
+    //               _qos = MqttQos.values[template.qos.clamp(0, 2)];
+    //               _retainMessage = template.retain;
+    //             });
+    //           },
+    //           backgroundColor: Colors.blue[50],
+    //         )).toList(),
+    //       ),
+    //       const SizedBox(height: 12),
+    //     ],
+    //     // ========== END TEMPLATE SECTION ==========
+
+
+
+
+
                         TextField(
                           controller: payloadCtrl,
                           decoration: inputDecoration.copyWith(labelText: 'Payload'),
