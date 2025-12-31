@@ -3304,57 +3304,99 @@ Future<void> _deleteAllProfiles() async {
               onPressed: () => setState(() => _isDarkMode = !_isDarkMode),
               tooltip: _isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
             ),
-
-            IconButton(
-              icon: const Icon(Icons.download),
-              onPressed: _exportDatabase,
-              tooltip: 'Export Message History',
-            ),
-
-            IconButton(
-              icon: const Icon(Icons.clear_all),
-              onPressed: _clearMessages,
-              tooltip: 'Clear Messages',
-            ),
             
-            if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: _forceReconnect,
-                tooltip: 'Reconnect',
-              ),
-            IconButton(
-              icon: const Icon(Icons.bug_report),
-              onPressed: () {
-                _logMessage('Debug', 
-                    'Current Connection State:\n'
-                    'State: $_connectionState\n'
-                    'Will Enabled: $_enableWillMessage\n'
-                    'Certificate Type: ${_getCertificateTypeName()}\n'
-                    'Clean Session: $_cleanSession\n'
-                    'Keep Alive: ${keepAliveCtrl.text}\n'
-                    'Auto Reconnect: $_autoReconnect\n'
-                    'Reconnect Attempts: $_reconnectAttempts\n'
-                    'Active Subscriptions: ${_subscriptions.length}\n'
-                    'Client ID: ${clientIdCtrl.text}',
-                    isIncoming: false);
-              },
-              tooltip: 'Debug Connection',
-            ),
+          
+    //         IconButton(
+    //           icon: const Icon(Icons.download),
+    //           onPressed: _exportDatabase,
+    //           tooltip: 'Export Message History',
+    //         ),
+
+    //         IconButton(
+    //           icon: const Icon(Icons.clear_all),
+    //           onPressed: _clearMessages,
+    //           tooltip: 'Clear Messages',
+    //         ),
+            
+    //         if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
+    //           IconButton(
+    //             icon: const Icon(Icons.refresh),
+    //             onPressed: _forceReconnect,
+    //             tooltip: 'Reconnect',
+    //           ),
+    //         IconButton(
+    //           icon: const Icon(Icons.bug_report),
+    //           onPressed: () {
+    //             _logMessage('Debug', 
+    //                 'Current Connection State:\n'
+    //                 'State: $_connectionState\n'
+    //                 'Will Enabled: $_enableWillMessage\n'
+    //                 'Certificate Type: ${_getCertificateTypeName()}\n'
+    //                 'Clean Session: $_cleanSession\n'
+    //                 'Keep Alive: ${keepAliveCtrl.text}\n'
+    //                 'Auto Reconnect: $_autoReconnect\n'
+    //                 'Reconnect Attempts: $_reconnectAttempts\n'
+    //                 'Active Subscriptions: ${_subscriptions.length}\n'
+    //                 'Client ID: ${clientIdCtrl.text}',
+    //                 isIncoming: false);
+    //           },
+    //           tooltip: 'Debug Connection',
+    //         ),
 
 
-            IconButton(
-      icon: const Icon(Icons.storage),
-      onPressed: _debugDatabaseContents,
-      tooltip: 'Debug Database',
-    ),
+    //         IconButton(
+    //   icon: const Icon(Icons.storage),
+    //   onPressed: _debugDatabaseContents,
+    //   tooltip: 'Debug Database',
+    // ),
+
+
+
           ],
         ),
+
+
+        bottomNavigationBar: BottomAppBar(
+        
+        child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: _exportDatabase,
+            tooltip: 'Export Message History',
+          ),
+          IconButton(
+            icon: const Icon(Icons.clear_all),
+            onPressed: _clearMessages,
+            tooltip: 'Clear Messages',
+          ),
+          if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _forceReconnect,
+              tooltip: 'Reconnect',
+            ),
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () { /* debug function */ },
+            tooltip: 'Debug Connection',
+          ),
+          IconButton(
+            icon: const Icon(Icons.storage),
+            onPressed: _debugDatabaseContents,
+            tooltip: 'Debug Database',
+          ),
+        ],
+      ),
+    ),
+        
+
         body: Stack(
 
           children: [
 
-                    Padding(
+        Padding(
           padding: const EdgeInsets.all(16),
           child: SingleChildScrollView(
             child: Column(
