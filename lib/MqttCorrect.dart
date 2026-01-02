@@ -110,38 +110,6 @@ class ConnectionProfile {
     };
   }
 
-//  factory ConnectionProfile.fromMap(Map<String, dynamic> map) {
-
-//     return ConnectionProfile(
-//       id: map['id'],
-//       name: map['name'],
-//       brokerUrl: map['brokerUrl'],
-//       clientId: map['clientId'],
-//       username: map['username'],
-//       password: map['password'],
-//       enableAuth: map['enableAuth'] == 1,
-//       cleanSession: map['cleanSession'] == 1,
-//       keepAlive: map['keepAlive'],
-//       defaultQos: map['defaultQos'],
-//       enableWill: map['enableWill'] == 1,
-//       willTopic: map['willTopic'],
-//       willPayload: map['willPayload'],
-//       willQos: map['willQos'],
-//       willRetain: map['willRetain'] == 1,
-//       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
-//       // Certificate fields
-//       certificateType: CertificateType.values[map['certificateType'] ?? CertificateType.none.index],
-//       caCertificatePath: map['caCertificatePath'],
-//       clientCertificatePath: map['clientCertificatePath'],
-//       clientPrivateKeyPath: map['clientPrivateKeyPath'],
-//       clientKeyPassword: map['clientKeyPassword'],
-//       verifyCertificate: map['verifyCertificate'] == 1,
-//     );
-//   }
-// }
-
-
-
 
 
 // In ProfileHelper class, fix the fromMap method if needed:
@@ -591,11 +559,6 @@ class _MqttCorrectState extends State<MqttCorrect> {
   MqttQos _qos = MqttQos.atMostOnce;
 
 
-
-
-
-
-
   // Use ConnectionState enum instead of boolean
   ConnectionState _connectionState = ConnectionState.disconnected;
   
@@ -665,20 +628,6 @@ class _MqttCorrectState extends State<MqttCorrect> {
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void _showBrokerHelp() {
   showDialog(
     context: context,
@@ -724,8 +673,6 @@ void _showBrokerHelp() {
 
 
 
-
-
 Future<void> _debugDatabaseContents() async {
   try {
     _logMessage('Debug', '=== DATABASE CONTENTS ===', isIncoming: false);
@@ -749,12 +696,6 @@ Future<void> _debugDatabaseContents() async {
     _logMessage('Debug', 'Error checking DB: $e', isIncoming: false);
   }
 }
-
-
-
-
-
-
 
 
 
@@ -850,37 +791,6 @@ Future<void> _debugDatabaseContents() async {
 
 
 
-
-
-
-
-
-  // SAVE CURRENT AS TEMPLATE
-  // Future<void> _saveCurrentAsTemplate() async {
-  //   final template = MessageTemplate(
-  //     id: DateTime.now().millisecondsSinceEpoch.toString(),
-  //     name: 'Template ${_templates.length + 1}',
-  //     topic: pubTopicCtrl.text.trim(),
-  //     payload: payloadCtrl.text.trim(),
-  //     qos: _qos.index,
-  //     retain: _retainMessage,
-  //     createdAt: DateTime.now(),
-  //   );
-    
-  //   try {
-  //     await _templateHelper.insertTemplate(template);
-  //     final templates = await _templateHelper.getAllTemplates();
-  //     setState(() {
-  //       _templates = templates;
-  //       _currentTemplate = template;
-  //     });
-  //     _logMessage('Templates', '✅ Template saved: ${template.name}', isIncoming: false);
-  //   } catch (e) {
-  //     _logMessage('Templates', '❌ Error saving template: $e', isIncoming: false);
-  //   }
-  // }
-
-
 Future<void> _saveCurrentAsTemplate() async {
   _logMessage('Templates', '🔄 Starting to save template...', isIncoming: false);
   
@@ -913,35 +823,6 @@ Future<void> _saveCurrentAsTemplate() async {
     _logMessage('Templates', '💡 Stack trace: ${e.toString()}', isIncoming: false);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-  // DELETE TEMPLATE
-  // void _deleteTemplate(MessageTemplate template) async {
-  //   try {
-  //     await _templateHelper.deleteTemplate(template.id);
-  //     final templates = await _templateHelper.getAllTemplates();
-
-  //     setState(() {
-  //       _templates = templates;
-  //       if (_currentTemplate?.id == template.id) {
-  //         _currentTemplate = null;
-  //       }
-  //     });
-  //     _logMessage('Templates', '🗑️ Deleted template: ${template.name}', isIncoming: false);
-  //   } catch (e) {
-  //     _logMessage('Templates', '❌ Error deleting template: $e', isIncoming: false);
-  //   }
-  // }
 
 
 
@@ -3379,14 +3260,29 @@ Future<void> _deleteAllProfiles() async {
             ),
           IconButton(
             icon: const Icon(Icons.bug_report),
-            onPressed: () { /* debug function */ },
+            onPressed: () { 
+             
+             _logMessage('Debug', 
+                    'Current Connection State:\n'
+                    'State: $_connectionState\n'
+                    'Will Enabled: $_enableWillMessage\n'
+                    'Certificate Type: ${_getCertificateTypeName()}\n'
+                    'Clean Session: $_cleanSession\n'
+                    'Keep Alive: ${keepAliveCtrl.text}\n'
+                    'Auto Reconnect: $_autoReconnect\n'
+                    'Reconnect Attempts: $_reconnectAttempts\n'
+                    'Active Subscriptions: ${_subscriptions.length}\n'
+                    'Client ID: ${clientIdCtrl.text}',
+                    isIncoming: false);
+               },
+
             tooltip: 'Debug Connection',
           ),
-          IconButton(
-            icon: const Icon(Icons.storage),
-            onPressed: _debugDatabaseContents,
-            tooltip: 'Debug Database',
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.storage),
+          //   onPressed: _debugDatabaseContents,
+          //   tooltip: 'Debug Database',
+          // ),
         ],
       ),
     ),
@@ -5130,8 +5026,10 @@ Card(
                   side: const BorderSide(color: Colors.green),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                icon: const Icon(Icons.backup, size: 16),
-                label: const Text('EXPORT CONNECTIONS'),
+                icon: const Icon(Icons.backup, size: 15),
+                label: const Text('EXPORT BACKUP',
+                style: TextStyle(fontSize: 14),
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -5143,8 +5041,10 @@ Card(
                   side: const BorderSide(color: Colors.blue),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                icon: const Icon(Icons.restore, size: 16),
-                label: const Text('IMPORT BACKUP'),
+                icon: const Icon(Icons.restore, size: 15),
+                label: const Text('IMPORT BACKUP',
+                style: TextStyle(fontSize: 14),
+                ),
               ),
             ),
           ],
@@ -5187,13 +5087,6 @@ Card(
 
           ],
         )
-
-
-
-
-
-
-
 
 
 //         Padding(
