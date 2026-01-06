@@ -11,7 +11,6 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 import 'package:file_picker/file_picker.dart';
 
-import 'package:x509/x509.dart';
 
 // Connection state enum for better state management
 enum ConnectionState {
@@ -1086,54 +1085,138 @@ void _showAuthSuggestion(String url) {
   }
 
   // LOAD CERTIFICATE INFORMATION
-  Future<void> _loadCertificateInfo(String certPath) async {
-    try {
-      final file = File(certPath);
-      final size = await file.length();
-      final content = await file.readAsString();
+  // Future<void> _loadCertificateInfo(String certPath) async {
+  //   try {
+  //     final file = File(certPath);
+  //     final size = await file.length();
+  //     final content = await file.readAsString();
       
-      String info = 'Certificate Information:\n';
-      info += '• Path: ${path.basename(certPath)}\n';
-      info += '• Size: $size bytes\n';
-      info += '• Type: ';
+  //     String info = 'Certificate Information:\n';
+  //     info += '• Path: ${path.basename(certPath)}\n';
+  //     info += '• Size: $size bytes\n';
+  //     info += '• Type: ';
       
-      if (content.contains('-----BEGIN CERTIFICATE-----')) {
-        info += 'X.509 Certificate (PEM)\n';
-        info += '• Format: PEM\n';
+  //     if (content.contains('-----BEGIN CERTIFICATE-----')) {
+  //       info += 'X.509 Certificate (PEM)\n';
+  //       info += '• Format: PEM\n';
         
-        // Try to extract subject and issuer (basic parsing)
-        final lines = content.split('\n');
+  //       // Try to extract subject and issuer (basic parsing)
+  //       final lines = content.split('\n');
+  //       for (final line in lines) {
+  //         if (line.contains('Subject:')) {
+  //           info += '• Subject: ${line.replaceFirst('Subject:', '').trim()}\n';
+  //         }
+  //         if (line.contains('Issuer:')) {
+  //           info += '• Issuer: ${line.replaceFirst('Issuer:', '').trim()}\n';
+  //         }
+  //       }
+  //     } else if (content.contains('-----BEGIN PRIVATE KEY-----')) {
+  //       info += 'Private Key (PEM)\n';
+  //       info += '• Format: PEM Private Key\n';
+  //     } else if (content.contains('-----BEGIN RSA PRIVATE KEY-----')) {
+  //       info += 'RSA Private Key (PEM)\n';
+  //       info += '• Format: RSA Private Key\n';
+  //     } else {
+  //       info += 'Unknown format\n';
+  //     }
+      
+  //     setState(() {
+  //       _certificateInfo = info;
+  //       _showCertificateInfo = true;
+  //     });
+  //   } catch (e) {
+  //     setState(() {
+  //       _certificateInfo = 'Error reading certificate: $e';
+  //       _showCertificateInfo = true;
+  //     });
+  //   }
+  // }
+
+
+Future<void> _loadCertificateInfo(String certPath) async {
+  try {
+    final file = File(certPath);
+    final size = await file.length();
+    final content = await file.readAsString();
+    
+    String info = 'Certificate Information:\n';
+    info += '• Path: ${path.basename(certPath)}\n';
+    info += '• Size: $size bytes\n';
+    info += '• Type: ';
+    
+    if (content.contains('-----BEGIN CERTIFICATE-----')) {
+      info += 'X.509 Certificate (PEM)\n';
+      info += '• Format: PEM\n';
+      
+      // Basic validation - SAFE and SIMPLE
+      final start = content.indexOf('-----BEGIN CERTIFICATE-----');
+      final end = content.indexOf('-----END CERTIFICATE-----');
+      
+      if (start != -1 && end != -1 && end > start) {
+        final certContent = content.substring(start, end + 25);
+        final lines = certContent.split('\n');
+        
+        info += '• Lines: ${lines.length}\n';
+        
+        // Show first few lines of base64 content
+        bool inBase64 = false;
+        int base64Lines = 0;
         for (final line in lines) {
-          if (line.contains('Subject:')) {
-            info += '• Subject: ${line.replaceFirst('Subject:', '').trim()}\n';
-          }
-          if (line.contains('Issuer:')) {
-            info += '• Issuer: ${line.replaceFirst('Issuer:', '').trim()}\n';
+          if (line.contains('BEGIN CERTIFICATE')) inBase64 = true;
+          if (line.contains('END CERTIFICATE')) break;
+          if (inBase64 && line.isNotEmpty && !line.contains('---')) {
+            base64Lines++;
           }
         }
-      } else if (content.contains('-----BEGIN PRIVATE KEY-----')) {
-        info += 'Private Key (PEM)\n';
-        info += '• Format: PEM Private Key\n';
-      } else if (content.contains('-----BEGIN RSA PRIVATE KEY-----')) {
-        info += 'RSA Private Key (PEM)\n';
-        info += '• Format: RSA Private Key\n';
+        info += '• Base64 lines: $base64Lines\n';
+        
+        if (base64Lines > 1) {
+          info += '• ✅ Valid PEM structure\n';
+        } else {
+          info += '• ⚠️ Possibly empty/invalid\n';
+        }
       } else {
-        info += 'Unknown format\n';
+        info += '• ❌ Invalid PEM format\n';
       }
       
+    } else if (content.contains('-----BEGIN PRIVATE KEY-----')) {
+      info += 'Private Key (PEM)\n';
+      info += '• Format: PKCS#8 Private Key\n';
+      info += '• ⚠️ Warning: This is a PRIVATE KEY - keep secure!\n';
+      
+    } else if (content.contains('-----BEGIN RSA PRIVATE KEY-----')) {
+      info += 'RSA Private Key (PEM)\n';
+      info += '• Format: RSA Private Key\n';
+      info += '• ⚠️ Warning: This is a PRIVATE KEY - keep secure!\n';
+      
+    } else {
+      info += 'Unknown format\n';
+      info += '• First 50 chars: ${content.length > 50 ? content.substring(0, 50) + '...' : content}\n';
+    }
+    
+    // ADD A SMALL DELAY to prevent rapid UI updates
+    await Future.delayed(Duration(milliseconds: 50));
+    
+    if (mounted) {
       setState(() {
         _certificateInfo = info;
         _showCertificateInfo = true;
       });
-    } catch (e) {
+    }
+  } catch (e) {
+    print('Error in _loadCertificateInfo: $e');
+    
+    // ADD DELAY before error display too
+    await Future.delayed(Duration(milliseconds: 50));
+    
+    if (mounted) {
       setState(() {
-        _certificateInfo = 'Error reading certificate: $e';
+        _certificateInfo = 'Error reading file:\n${e.toString()}';
         _showCertificateInfo = true;
       });
     }
   }
-
-
+}
 
 
 
