@@ -1084,54 +1084,7 @@ void _showAuthSuggestion(String url) {
     }
   }
 
-  // LOAD CERTIFICATE INFORMATION
-  // Future<void> _loadCertificateInfo(String certPath) async {
-  //   try {
-  //     final file = File(certPath);
-  //     final size = await file.length();
-  //     final content = await file.readAsString();
-      
-  //     String info = 'Certificate Information:\n';
-  //     info += '• Path: ${path.basename(certPath)}\n';
-  //     info += '• Size: $size bytes\n';
-  //     info += '• Type: ';
-      
-  //     if (content.contains('-----BEGIN CERTIFICATE-----')) {
-  //       info += 'X.509 Certificate (PEM)\n';
-  //       info += '• Format: PEM\n';
-        
-  //       // Try to extract subject and issuer (basic parsing)
-  //       final lines = content.split('\n');
-  //       for (final line in lines) {
-  //         if (line.contains('Subject:')) {
-  //           info += '• Subject: ${line.replaceFirst('Subject:', '').trim()}\n';
-  //         }
-  //         if (line.contains('Issuer:')) {
-  //           info += '• Issuer: ${line.replaceFirst('Issuer:', '').trim()}\n';
-  //         }
-  //       }
-  //     } else if (content.contains('-----BEGIN PRIVATE KEY-----')) {
-  //       info += 'Private Key (PEM)\n';
-  //       info += '• Format: PEM Private Key\n';
-  //     } else if (content.contains('-----BEGIN RSA PRIVATE KEY-----')) {
-  //       info += 'RSA Private Key (PEM)\n';
-  //       info += '• Format: RSA Private Key\n';
-  //     } else {
-  //       info += 'Unknown format\n';
-  //     }
-      
-  //     setState(() {
-  //       _certificateInfo = info;
-  //       _showCertificateInfo = true;
-  //     });
-  //   } catch (e) {
-  //     setState(() {
-  //       _certificateInfo = 'Error reading certificate: $e';
-  //       _showCertificateInfo = true;
-  //     });
-  //   }
-  // }
-
+  
 
 Future<void> _loadCertificateInfo(String certPath) async {
   try {
@@ -2587,154 +2540,6 @@ Valid Until: ${cert.endValidity}
 
 
 
-  // Future<void> _saveCurrentAsProfile() async {
-  //   String suggestName() {
-  //     final url = urlCtrl.text.trim();
-  //     if (url.contains('mosquitto')) return 'Mosquitto Server';
-  //     if (url.contains('localhost')) return 'Local Server';
-  //     if (url.contains('hivemq')) return 'HiveMQ';
-  //     if (url.contains('emqx')) return 'EMQX';
-      
-  //     final uri = Uri.tryParse(url);
-  //     if (uri != null && uri.host.isNotEmpty) {
-  //       return '${uri.host} Server';
-  //     }
-      
-  //     return 'Connection ${_profiles.length + 1}';
-  //   }
-
-  //   String brokerUrl = urlCtrl.text.trim();
-  //   if (_enableTLS) {
-  //     if (brokerUrl.startsWith('tcp://')) {
-  //       brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
-  //     } else if (brokerUrl.startsWith('ws://')) {
-  //       brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
-  //     } else if (!brokerUrl.startsWith('ssl://') && !brokerUrl.startsWith('wss://')) {
-  //       brokerUrl = 'ssl://$brokerUrl';
-  //     }
-  //   }
-
-  //   final profile = ConnectionProfile(
-  //     id: DateTime.now().millisecondsSinceEpoch.toString(),
-  //     name: suggestName(),
-  //     brokerUrl: brokerUrl,
-  //     clientId: clientIdCtrl.text.trim(),
-  //     username: usernameCtrl.text.trim(),
-  //     password: passwordCtrl.text.trim(),
-  //     enableAuth: _enableAuth,
-  //     cleanSession: _cleanSession,
-  //     keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
-  //     defaultQos: _qos.index,
-  //     enableWill: _enableWillMessage,
-  //     willTopic: willTopicCtrl.text.trim(),
-  //     willPayload: willPayloadCtrl.text.trim(),
-  //     willQos: _willQos.index,
-  //     willRetain: _willRetain,
-  //     createdAt: DateTime.now(),
-  //     // Certificate fields
-  //     certificateType: _certificateType,
-  //     caCertificatePath: _caCertificatePath,
-  //     clientCertificatePath: _clientCertificatePath,
-  //     clientPrivateKeyPath: _clientPrivateKeyPath,
-  //     clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
-  //     verifyCertificate: _verifyCertificate,
-  //   );
-    
-  //   try {
-  //     await _profileHelper.insertProfile(profile);
-  //     final profiles = await _profileHelper.getAllProfiles();
-  //     setState(() {
-  //       _profiles = profiles;
-  //       _currentProfile = profile;
-  //     });
-  //     _logMessage('Profiles', '✅ Profile saved: ${profile.name}', isIncoming: false);
-  //   } catch (e) {
-  //     _logMessage('Profiles', '❌ Error saving profile: $e', isIncoming: false);
-  //   }
-  // }
-
-
-
-// Future<void> _saveCurrentAsProfile() async {
-//   _logMessage('Profiles', '🔄 Starting to save profile...', isIncoming: false);
-  
-//   String suggestName() {
-//     final url = urlCtrl.text.trim();
-//     if (url.contains('mosquitto')) return 'Mosquitto Server';
-//     if (url.contains('localhost')) return 'Local Server';
-//     if (url.contains('hivemq')) return 'HiveMQ';
-//     if (url.contains('emqx')) return 'EMQX';
-    
-//     final uri = Uri.tryParse(url);
-//     if (uri != null && uri.host.isNotEmpty) {
-//       return '${uri.host} Server';
-//     }
-    
-//     return 'Connection ${_profiles.length + 1}';
-//   }
-
-//   String brokerUrl = urlCtrl.text.trim();
-//   if (_enableTLS) {
-//     if (brokerUrl.startsWith('tcp://')) {
-//       brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
-//     } else if (brokerUrl.startsWith('ws://')) {
-//       brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
-//     } else if (!brokerUrl.startsWith('ssl://') && !brokerUrl.startsWith('wss://')) {
-//       brokerUrl = 'ssl://$brokerUrl';
-//     }
-//   }
-
-//   final profile = ConnectionProfile(
-//     id: DateTime.now().millisecondsSinceEpoch.toString(), // Make sure this is unique!
-//     name: suggestName(),
-//     brokerUrl: brokerUrl,
-//     clientId: clientIdCtrl.text.trim(),
-//     username: usernameCtrl.text.trim(),
-//     password: passwordCtrl.text.trim(),
-//     enableAuth: _enableAuth,
-//     cleanSession: _cleanSession,
-//     keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
-//     defaultQos: _qos.index,
-//     enableWill: _enableWillMessage,
-//     willTopic: willTopicCtrl.text.trim(),
-//     willPayload: willPayloadCtrl.text.trim(),
-//     willQos: _willQos.index,
-//     willRetain: _willRetain,
-//     createdAt: DateTime.now(),
-//     // Certificate fields
-//     certificateType: _certificateType,
-//     caCertificatePath: _caCertificatePath,
-//     clientCertificatePath: _clientCertificatePath,
-//     clientPrivateKeyPath: _clientPrivateKeyPath,
-//     clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
-//     verifyCertificate: _verifyCertificate,
-//   );
-  
-//   _logMessage('Profiles', '📝 Created profile object: ${profile.name} (ID: ${profile.id})', isIncoming: false);
-  
-//   try {
-//     final result = await _profileHelper.insertProfile(profile);
-//     _logMessage('Profiles', '✅ Database insert result: $result', isIncoming: false);
-    
-//     final profiles = await _profileHelper.getAllProfiles();
-//     _logMessage('Profiles', '📊 Total profiles after save: ${profiles.length}', isIncoming: false);
-    
-//     setState(() {
-//       _profiles = profiles;
-//       _currentProfile = profile;
-//     });
-//     _logMessage('Profiles', '✅ Profile saved: ${profile.name}', isIncoming: false);
-//   } catch (e) {
-//     _logMessage('Profiles', '❌ Error saving profile: $e', isIncoming: false);
-//     _logMessage('Profiles', '💡 Stack trace: ${e.toString()}', isIncoming: false);
-//   }
-// }
-
-
-
-
-
-
 Future<void> _saveCurrentAsProfile() async {
   _logMessage('Profiles', '=== START SAVE PROFILE ===', isIncoming: false);
   
@@ -2843,18 +2648,6 @@ Future<void> _saveCurrentAsProfile() async {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
   Future<void> _updateCurrentProfile() async {
     if (_currentProfile == null) return;
     
@@ -2897,24 +2690,7 @@ Future<void> _saveCurrentAsProfile() async {
     }
   }
 
-  // void _deleteProfile(ConnectionProfile profile) async {
-  //   try {
-  //     await _profileHelper.deleteProfile(profile.id);
-  //     final profiles = await _profileHelper.getAllProfiles();
-  //     setState(() {
-  //       _profiles = profiles;
-  //       if (_currentProfile?.id == profile.id) {
-  //         _currentProfile = null;
-  //       }
-  //     });
-  //     _logMessage('Profiles', '🗑️ Deleted profile: ${profile.name}', isIncoming: false);
-  //   } catch (e) {
-  //     _logMessage('Profiles', '❌ Error deleting profile: $e', isIncoming: false);
-  //   }
-  // }
-
-
-
+ 
 
 
 Future<void> _deleteProfile(ConnectionProfile profile) async {
@@ -2977,9 +2753,6 @@ void _clearProfileFields() {
 
 
 
-
-
-
 Future<void> _deleteAllProfiles() async {
   try {
     final db = await _profileHelper.database;
@@ -3001,17 +2774,6 @@ Future<void> _deleteAllProfiles() async {
     _logMessage('Profiles', '❌ Error deleting all profiles: $e', isIncoming: false);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
   //new check
@@ -3279,54 +3041,6 @@ Future<void> _deleteAllProfiles() async {
               onPressed: () => setState(() => _isDarkMode = !_isDarkMode),
               tooltip: _isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
             ),
-            
-          
-    //         IconButton(
-    //           icon: const Icon(Icons.download),
-    //           onPressed: _exportDatabase,
-    //           tooltip: 'Export Message History',
-    //         ),
-
-    //         IconButton(
-    //           icon: const Icon(Icons.clear_all),
-    //           onPressed: _clearMessages,
-    //           tooltip: 'Clear Messages',
-    //         ),
-            
-    //         if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
-    //           IconButton(
-    //             icon: const Icon(Icons.refresh),
-    //             onPressed: _forceReconnect,
-    //             tooltip: 'Reconnect',
-    //           ),
-    //         IconButton(
-    //           icon: const Icon(Icons.bug_report),
-    //           onPressed: () {
-    //             _logMessage('Debug', 
-    //                 'Current Connection State:\n'
-    //                 'State: $_connectionState\n'
-    //                 'Will Enabled: $_enableWillMessage\n'
-    //                 'Certificate Type: ${_getCertificateTypeName()}\n'
-    //                 'Clean Session: $_cleanSession\n'
-    //                 'Keep Alive: ${keepAliveCtrl.text}\n'
-    //                 'Auto Reconnect: $_autoReconnect\n'
-    //                 'Reconnect Attempts: $_reconnectAttempts\n'
-    //                 'Active Subscriptions: ${_subscriptions.length}\n'
-    //                 'Client ID: ${clientIdCtrl.text}',
-    //                 isIncoming: false);
-    //           },
-    //           tooltip: 'Debug Connection',
-    //         ),
-
-
-    //         IconButton(
-    //   icon: const Icon(Icons.storage),
-    //   onPressed: _debugDatabaseContents,
-    //   tooltip: 'Debug Database',
-    // ),
-
-
-
           ],
         ),
 
@@ -3372,11 +3086,6 @@ Future<void> _deleteAllProfiles() async {
 
             tooltip: 'Debug Connection',
           ),
-          // IconButton(
-          //   icon: const Icon(Icons.storage),
-          //   onPressed: _debugDatabaseContents,
-          //   tooltip: 'Debug Database',
-          // ),
         ],
       ),
     ),
@@ -3465,9 +3174,6 @@ Future<void> _deleteAllProfiles() async {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-
-                               
-
                                ActionChip(
   avatar: const Icon(Icons.warning_amber, size: 16),
   label: const Text('EMQX 1884 (Test)'),
@@ -3485,8 +3191,6 @@ Future<void> _deleteAllProfiles() async {
         isIncoming: false);
   },
 ),
-
-
 
                             ActionChip(
                               avatar: const Icon(Icons.play_arrow, size: 16),
@@ -3751,9 +3455,6 @@ Future<void> _deleteAllProfiles() async {
       const SizedBox(height: 12),
     ],
     // === END OF ADDED CODE ===
-
-
-
 
                           const Divider(),
                           const SizedBox(height: 8),
@@ -4823,19 +4524,6 @@ Card(
         ],
         // ========== END OF ADDED SECTION ==========
 
-
-
-
-
-                        // TextField(
-                        //   controller: pubTopicCtrl,
-                        //   decoration: inputDecoration.copyWith(labelText: 'Topic to publish'),
-                        // ),
-
-
-
-
-
       TextField(
           controller: pubTopicCtrl,
           decoration: inputDecoration.copyWith(
@@ -4864,9 +4552,6 @@ Card(
 
 
                         const SizedBox(height: 12),
-
-   
-
                         TextField(
                           controller: payloadCtrl,
                           decoration: inputDecoration.copyWith(labelText: 'Payload'),
@@ -5029,15 +4714,6 @@ Card(
                                 )
 
 
-                              // : ListView.builder(
-                              //     reverse: true,
-                              //     itemCount: _filteredMessages.length,
-                              //     itemBuilder: (context, index) {
-                              //       final message = _filteredMessages[index];
-                              //       return MessageItem(message: message);
-                              //     },
-                              //   ),
-
                               : ListView.builder(
                                       reverse: true,
                                       controller: _scrollController,  // ← ADD THIS LINE
@@ -5047,8 +4723,6 @@ Card(
                                       return MessageItem(message: message);
                                       },
                                       ),
-
-
 
                         ),
                       ],
