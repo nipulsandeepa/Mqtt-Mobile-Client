@@ -74,15 +74,11 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 
 **Connection Management** | **Message Log** | **Profiles & Templates**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="images/connection.jpeg" width="300" alt="Connection Screen"> | 
-<img src="images/message.jpeg" width="300" alt="Message Log"> | 
-<img src="images/profiles.PNG" width="300" alt="Profiles Management">
+<img src="images/connection.jpeg" width="300" alt="Connection Screen"> | <img src="images/message.jpeg" width="300" alt="Message Log"> | <img src="images/profiles.PNG" width="300" alt="Profiles Management">
 
 **Dark Mode Theme** | **Will Message Setup** | **Export Functionality**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="images/dark_mode.PNG" width="300" alt="Dark Mode"> | 
-<img src="images/will_config.PNG" width="300" alt="Will Configuration"> | 
-<img src="images/export.PNG" width="300" alt="Export Feature">
+<img src="images/dark_mode.PNG" width="300" alt="Dark Mode"> | <img src="images/will_config.PNG" width="300" alt="Will Configuration"> | <img src="images/export.PNG" width="300" alt="Export Feature">
 
 </div>
 
