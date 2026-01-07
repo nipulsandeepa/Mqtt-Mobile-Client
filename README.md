@@ -11,7 +11,25 @@ A professional-grade MQTT client application built with Flutter, featuring robus
   <img src="screenshots/app_demo.gif" width="80%" alt="MQTT Mobile Client Demo">
 </div>
 
+## 🏆 Key Highlights
+- ✅ Enterprise SSL/TLS Security - Complete certificate management system
+- ✅ Mutual TLS Support - Client certificate authentication (mTLS)
+- ✅ Professional Data Backup - Full configuration export/import
+- ✅ Advanced Certificate Handling - Parse, validate, and manage certificates
+- ✅ Production-Ready - Follows industry security best practices
+
 ## ✨ Features
+
+
+### 🔐 Enterprise Security Features
+- SSL/TLS Certificate Management: Upload CA, client, and server certificates
+- Mutual TLS (mTLS): Client certificate authentication support
+- Certificate Chain Validation: Proper X.509 certificate parsing
+- Multiple Format Support: PEM, CRT, CER, KEY formats with automatic detection
+- Certificate Information Display: View issuer, subject, validity, and SAN details
+- Self-Signed Certificate Support: Perfect for development and testing
+- Certificate Testing: Validate certificates before connection attempts
+
 
 ### 🚀 Connection Management
 - Multi-protocol Support: TCP, WebSocket, SSL/TLS, WSS
@@ -19,6 +37,13 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 - Auto-Reconnect: Intelligent reconnection with exponential backoff
 - Health Monitoring: Real-time connection health with ping/pong system
 - Uptime Tracking: Live connection duration display
+
+### 💾 Data Management
+- Backup & Restore: Export/import all connection profiles & templates as JSON
+- Database Versioning: Seamless migrations and data integrity
+- Message History: Persistent storage with intelligent pruning (auto-removes oldest messages)
+- Profile Management: Rename, delete, and organize connection configurations
+- Template System: Save message templates with quick load functionality
 
 ### 💬 Message Handling
 - Full MQTT 3.1.1 Implementation: Publish, subscribe, all QoS levels (0, 1, 2)
@@ -29,16 +54,18 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 
 ### ⚙️ Advanced Features
 - Will Messages: Configurable Last Will and Testament with proper session management
-- Authentication: Username/password authentication support
-- SSL/TLS: Secure connections with self-signed certificate allowance
+- Authentication: Username/password + certificate-based authentication
 - Clean Session Management: Configurable session persistence
-- Export Functionality: Database and configuration backup
+- Export Functionality: Database and configuration backup to device storage
+- File System Integration: Secure file handling with permission management
 
 ### 🎨 User Experience
 - Dark/Light Theme: Toggleable theme system
 - Connection Statistics: Real-time metrics and analytics
 - Quick Test: One-click connection to popular public brokers
 - Debug Tools: URL analysis and connection state inspection
+- Auto-Scroll: Messages automatically scroll to newest with toggle option
+- Topic Suggestions: Smart suggestions from active subscriptions
 - Responsive UI: Adapts to different screen sizes
 
 ## 📸 Screenshots
@@ -47,11 +74,15 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 
 **Connection Management** | **Message Log** | **Profiles & Templates**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="images/connection.jpeg" width="300" alt="Connection Screen"> | <img src="images/message.jpeg" width="300" alt="Message Log"> | <img src="images/profiles.jpeg" width="300" alt="Profiles Management">
+<img src="images/connection.jpeg" width="300" alt="Connection Screen"> | 
+<img src="images/message.jpeg" width="300" alt="Message Log"> | 
+<img src="images/profiles.PNG" width="300" alt="Profiles Management">
 
 **Dark Mode Theme** | **Will Message Setup** | **Export Functionality**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="images/dark_mode.PNG" width="300" alt="Dark Mode"> | <img src="images/will_config.PNG" width="300" alt="Will Configuration"> | <img src="images/export.PNG" width="300" alt="Export Feature">
+<img src="images/dark_mode.PNG" width="300" alt="Dark Mode"> | 
+<img src="images/will_config.PNG" width="300" alt="Will Configuration"> | 
+<img src="images/export.PNG" width="300" alt="Export Feature">
 
 </div>
 
@@ -61,9 +92,27 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 The app includes Quick Test buttons for instant connection:
 
 - Mosquitto TCP: `tcp://test.mosquitto.org:1883`
+- Mosquitto TLS: `ssl://test.mosquitto.org:8883` (requires CA certificate)
 - Mosquitto WebSocket: `ws://test.mosquitto.org:8080`
 - EMQX TCP: `tcp://broker.emqx.io:1883`
 - EMQX WebSocket: `ws://broker.emqx.io:8083`
+
+## Testing TLS/SSL Features
+
+One-way TLS (Server Authentication):
+```Bash# Clone the repository
+Broker: ssl://your-broker:8883
+Certificate: Upload CA certificate
+Client Cert: Not required
+```
+
+Mutual TLS (Client Certificate Authentication):
+```Bash# Clone the repository
+Broker: ssl://your-broker:8884
+Certificate: Upload CA certificate
+Client Cert: Upload client certificate
+Client Key: Upload private key
+```
 
 ### Manual Connection
 1. Enter broker URL (e.g., `tcp://test.mosquitto.org:1883`)
@@ -78,39 +127,83 @@ For detailed documentation including architecture, troubleshooting, and advanced
 
 ### 🔧 Architecture
 ```dart
-Main Application State (_MqttCorrectState)
-├── Connection Management
-├── Message Handling System
-├── Database Services (ProfileHelper, TemplateHelper, DatabaseHelper)
-├── UI State Management
-└── Network Layer (MqttServerClient)
+Security Implementation Stack:
+├── Certificate Management Layer
+│   ├── PEM File Parser
+│   ├── X.509 Certificate Validator
+│   ├── Certificate Chain Builder
+│   └── SecurityContext Creator
+├── TLS/SSL Connection Layer
+│   ├── One-way TLS Handler
+│   ├── Mutual TLS (mTLS) Handler
+│   ├── Certificate Pinning
+│   └── Hostname Verification
+├── Data Persistence Layer
+│   ├── Secure Storage
+│   ├── Backup/Restore System
+│   ├── Configuration Management
+│   └── Message Database
+└── User Interface Layer
+    ├── Certificate Upload UI
+    ├── Security Configuration
+    ├── Connection Management
+    └── Status Monitoring
 ```
 
 ## 🗄️ Data Models
 
-- ConnectionProfile: Broker connection configurations
-- MessageTemplate: Saved message patterns
-- Message: Individual MQTT messages with metadata
-- Subscription: Active topic subscriptions
+- ConnectionProfile - Broker connection configurations with security settings
+- CertificateInfo - Certificate metadata and validation results
+- MessageTemplate - Saved message patterns with variables
+- Message - Individual MQTT messages with metadata
+- Subscription - Active topic subscriptions with QoS levels
 
-💾 Database Structure
+## 💾 Database Structure
 
-- mqtt_profiles.db – Connection profiles
+- mqtt_profiles.db – Connection profiles with security configurations
 - mqtt_templates.db – Message templates
-- mqtt_messages.db – Message history
+- mqtt_messages.db – Message history with search indexing
+
+## 🛡️ Security Implementation Details
+### Certificate Management
+
+```Bash#
+// Supported Certificate Operations:
+1. Upload and parse PEM certificates
+2. Validate certificate chains
+3. Extract certificate information (issuer, subject, validity)
+4. Check Subject Alternative Names (SAN)
+5. Validate certificate expiration
+6. Create SecurityContext for TLS connections
+7. Handle both one-way and mutual TLS scenarios
+```
+
+## Supported Certificate Types
+
+- X.509 Certificates: PEM format with proper chain validation
+- Private Keys: RSA and PKCS#8 formats with password protection
+- Certificate Authorities: Self-signed and public CA certificates
+- Client Certificates: For mutual TLS authentication
 
 ## 🎯 Use Cases
 ### 🏭 IoT Development & Testing
 
 - Rapid prototyping of IoT applications
-- Testing device communication
 - Protocol validation and debugging
+- Secure device communication testing
+- TLS certificate validation for IoT deployments
+- Protocol debugging with encryption
+- Certificate rotation testing
 
 ### 🎓 Educational Tool
 
 - Learning MQTT protocol concepts
 - Understanding QoS levels
 - Testing Will messages and retained messages
+- Secure device communication testing
+- TLS certificate validation for IoT deployments
+- Protocol debugging with encryption
+- Certificate rotation testing
 
 ### 🔍 Production Monitoring
 
@@ -153,16 +246,23 @@ flutter build ios --release  # For iOS
 
 ## 📊 Feature Comparison
 
-| Feature | MQTT Mobile Client | MQTT Box | Advantage |
-|---------|-------------------|----------|-----------|
-| Auto-Reconnect | ✅ Intelligent with backoff | ✅ Basic | Better |
-| Connection Health | ✅ Real-time monitoring | ❌ Missing | Superior |
-| Will Messages | ✅ With session fix | ✅ Basic | More Reliable |
-| Error Handling | ✅ Comprehensive | ❌ Basic | Much Better |
-| UI/UX | ✅ Modern, themes | ❌ Outdated | Modern |
-| Debug Tools | ✅ Advanced | ❌ Limited | Professional |
-| Export | ✅ Database & config | ❌ Missing | Complete |
-| Quick Test | ✅ One-click brokers | ❌ Missing | User-Friendly |
+## 📊 Feature Comparison
+
+| Feature                          | MQTT Mobile Client      | MQTT Box        | MQTT Dash       | Advantage        |
+|----------------------------------|-------------------------|-----------------|-----------------|------------------|
+| SSL/TLS Certificate Management   | ✅ Complete System      | ❌ Basic        | ❌ None         | Superior         |
+| Mutual TLS (mTLS)                | ✅ Full Support         | ❌ Limited      | ❌ No           | Enterprise       |
+| Certificate Validation           | ✅ X.509 Parsing        | ❌ None         | ❌ None         | Professional     |
+| Backup & Restore                 | ✅ Full System          | ❌ None         | ❌ Partial      | Complete         |
+| Auto-Reconnect                   | ✅ Intelligent          | ✅ Basic        | ✅ Basic        | Better           |
+| Connection Health                | ✅ Real-time            | ❌ Missing      | ❌ Missing      | Superior         |
+| Will Messages                    | ✅ With Fix             | ✅ Basic        | ✅ Basic        | More Reliable    |
+| Error Handling                   | ✅ Comprehensive        | ❌ Basic        | ❌ Basic        | Much Better      |
+| UI / UX                          | ✅ Modern Themes        | ❌ Outdated     | ✅ Modern       | Flexible         |
+| Debug Tools                      | ✅ Advanced             | ❌ Limited      | ❌ Limited      | Professional     |
+| Quick Test                       | ✅ One-click            | ❌ Missing      | ✅ Limited      | User-Friendly    |
+| Message Templates                | ✅ With Variables       | ❌ None         | ✅ Basic        | Advanced         |
+
 
 ## 🔧 Configuration Examples
 Recommended Settings for Mosquitto
@@ -183,7 +283,25 @@ Will Retain: false
 ## 🐛 Troubleshooting
 ### Common Issues & Solutions
 
-IssueCauseSolutionConnection drops quicklyKeep-alive timeoutSet Keep Alive ≤ 30 secondsWill messages not triggeringClean Session = TRUESet Clean Session = FALSESSL/TLS failsCertificate issuesEnable "Allow Self-Signed" for testingWildcards not workingInvalid patternUse correct syntax: sensor/+/temperature or home/#
+### 🌐 General Connection Issues
+
+| Issue                         | Cause                  | Solution                                                                 |
+|-------------------------------|------------------------|--------------------------------------------------------------------------|
+| Connection drops quickly      | Keep-alive timeout     | Set Keep Alive ≤ 30 seconds                                               |
+| Will messages not triggering  | Clean Session = TRUE   | Set Clean Session = FALSE                                                 |
+| Wildcards not working         | Invalid pattern        | Use correct syntax: `sensor/+/temperature` or `home/#`                    |
+| Message history missing       | Database issue         | Use **Export** feature to back up data, then reinstall the application   |
+
+### 🔐 Common SSL/TLS Issues
+
+| Issue                          | Symptoms                    | Solution                                                                 |
+|--------------------------------|-----------------------------|--------------------------------------------------------------------------|
+| Certificate Validation Failed  | "Handshake failed"          | Ensure certificate SAN matches broker hostname                            |
+| Self-Signed Certificate Rejected | "Untrusted certificate"   | Enable **Allow Self-Signed** in connection settings                       |
+| Mutual TLS Connection Refused  | "Bad certificate"           | Ensure broker requires client certificates on the correct port           |
+| Certificate Format Error       | "Invalid PEM format"        | Verify certificate is proper PEM format with BEGIN/END markers            |
+| Certificate Chain Invalid      | "Chain validation failed"   | Ensure all intermediate certificates are included                         |
+
 Debug Tools
 
 Debug URL Button: Analyzes URL structure and parsing
@@ -222,6 +340,12 @@ Export Feature: Database export for offline analysis
 - Stream subscription handling
 - Memory management with automatic message pruning
 
+- Solved Complex Security Challenges
+- Certificate Chain Validation: Implemented proper X.509 certificate parsing
+- Mutual TLS Support: Client certificate authentication working end-to-end
+- SecurityContext Management: Proper TLS context creation for Flutter
+- PEM File Handling: Robust parsing of various certificate formats
+
 
 ## 🤝 Contributing
 We welcome contributions! Here's how you can help:
@@ -248,10 +372,19 @@ git push origin feature/AmazingFeatur
 
 ## 🙏 Acknowledgments
 
+### Core Technologies
+
+- Flutter & Dart - For the amazing cross-platform framework
+- mqtt_client package - Core MQTT functionality
+- sqflite - Local database storage
+
+## Test Infrastructure
+
 - **mqtt_client** package for core MQTT functionality
 - Public MQTT brokers for testing:
   - `test.mosquitto.org`
   - `broker.emqx.io`
+- Certificate Authorities - For TLS testing scenarios
 
 
 Flutter community for excellent documentation and support
@@ -272,17 +405,26 @@ All contributors who have helped improve this project
 ## 🚀 Future Roadmap
 ### Planned Features
 
-- MQTT 5.0 protocol support
-- Dashboard with visual metrics
-- Scripting and automation
-- Cloud sync for profiles
-- Multi-broker simultaneous connections
-- Plugin system for extensibility
+### Planned Features
+- MQTT 5.0 Protocol Support: Full protocol implementation
+- Advanced Dashboard: Visual metrics, charts, and analytics
+- Scripting & Automation: Automated test sequences and scenarios
+- Cloud Sync: Secure profile synchronization across devices
+- Multi-broker Connections: Simultaneous connections to multiple brokers
+- Plugin System: Extensible functionality through plugins
 
-## Quality of Life Improvements
+### Security Enhancements
+- Certificate Pinning: Enhanced security for production deployments
+- Encrypted Database: Additional layer of data protection
+- Biometric Authentication: Device-level security for app access
+- Audit Logging: Security event tracking and reporting
 
-- Connection wizard for beginners
-- Enhanced import/export features
-More theme options
-Keyboard shortcuts
-Offline message queuing
+### Quality of Life Improvements
+- Connection Wizard: Step-by-step setup for beginners
+- Enhanced Import/Export: Cloud backup and sharing options
+- More Theme Options: Additional color schemes and customization
+- Keyboard Shortcuts: Quick actions for power users
+- Offline Message Queuing: Store-and-forward capability
+
+## 🙏 Thank you for using MQTT Mobile Client!
+- This project represents the culmination of extensive research and development in mobile MQTT security and usability.
