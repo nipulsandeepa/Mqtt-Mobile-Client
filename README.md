@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/mqtt-mobile-client.svg?style=social)](https://github.com/YOUR_USERNAME/mqtt-mobile-client/stargazers)
 
-A professional-grade MQTT client application built with Flutter, featuring robust connection management, advanced message handling, and an intuitive user interface. This application rivals commercial MQTT clients while offering superior error handling and user experience.
+A professional-grade MQTT client application built with Flutter, featuring enterprise-level security, robust connection management, and complete SSL/TLS certificate support. This application not only rivals commercial MQTT clients but surpasses them with superior security implementation and user experience.
 
 <div align="center">
   <img src="screenshots/app_demo.gif" width="80%" alt="MQTT Mobile Client Demo">
