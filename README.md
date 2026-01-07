@@ -11,7 +11,25 @@ A professional-grade MQTT client application built with Flutter, featuring robus
   <img src="screenshots/app_demo.gif" width="80%" alt="MQTT Mobile Client Demo">
 </div>
 
+## 🏆 Key Highlights
+- ✅ Enterprise SSL/TLS Security - Complete certificate management system
+- ✅ Mutual TLS Support - Client certificate authentication (mTLS)
+- ✅ Professional Data Backup - Full configuration export/import
+- ✅ Advanced Certificate Handling - Parse, validate, and manage certificates
+- ✅ Production-Ready - Follows industry security best practices
+
 ## ✨ Features
+
+
+### 🔐 Enterprise Security Features
+-SSL/TLS Certificate Management: Upload CA, client, and server certificates
+-Mutual TLS (mTLS): Client certificate authentication support
+-Certificate Chain Validation: Proper X.509 certificate parsing
+-Multiple Format Support: PEM, CRT, CER, KEY formats with automatic detection
+-Certificate Information Display: View issuer, subject, validity, and SAN details
+-Self-Signed Certificate Support: Perfect for development and testing
+-Certificate Testing: Validate certificates before connection attempts
+
 
 ### 🚀 Connection Management
 - Multi-protocol Support: TCP, WebSocket, SSL/TLS, WSS
@@ -19,6 +37,13 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 - Auto-Reconnect: Intelligent reconnection with exponential backoff
 - Health Monitoring: Real-time connection health with ping/pong system
 - Uptime Tracking: Live connection duration display
+
+### 💾 Data Management
+-Backup & Restore: Export/import all connection profiles & templates as JSON
+-Database Versioning: Seamless migrations and data integrity
+-Message History: Persistent storage with intelligent pruning (auto-removes oldest messages)
+-Profile Management: Rename, delete, and organize connection configurations
+-Template System: Save message templates with quick load functionality
 
 ### 💬 Message Handling
 - Full MQTT 3.1.1 Implementation: Publish, subscribe, all QoS levels (0, 1, 2)
@@ -29,16 +54,18 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 
 ### ⚙️ Advanced Features
 - Will Messages: Configurable Last Will and Testament with proper session management
-- Authentication: Username/password authentication support
-- SSL/TLS: Secure connections with self-signed certificate allowance
+- Authentication: Username/password + certificate-based authentication
 - Clean Session Management: Configurable session persistence
-- Export Functionality: Database and configuration backup
+- Export Functionality: Database and configuration backup to device storage
+- File System Integration: Secure file handling with permission management
 
 ### 🎨 User Experience
 - Dark/Light Theme: Toggleable theme system
 - Connection Statistics: Real-time metrics and analytics
 - Quick Test: One-click connection to popular public brokers
 - Debug Tools: URL analysis and connection state inspection
+- Auto-Scroll: Messages automatically scroll to newest with toggle option
+- Topic Suggestions: Smart suggestions from active subscriptions
 - Responsive UI: Adapts to different screen sizes
 
 ## 📸 Screenshots
@@ -61,6 +88,7 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 The app includes Quick Test buttons for instant connection:
 
 - Mosquitto TCP: `tcp://test.mosquitto.org:1883`
+- Mosquitto TLS: `ssl://test.mosquitto.org:8883` (requires CA certificate)
 - Mosquitto WebSocket: `ws://test.mosquitto.org:8080`
 - EMQX TCP: `tcp://broker.emqx.io:1883`
 - EMQX WebSocket: `ws://broker.emqx.io:8083`
