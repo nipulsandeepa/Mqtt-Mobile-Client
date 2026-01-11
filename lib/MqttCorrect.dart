@@ -11,7 +11,6 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 import 'package:file_picker/file_picker.dart';
 
-
 // Connection state enum for better state management
 enum ConnectionState {
   disconnected,
@@ -22,13 +21,7 @@ enum ConnectionState {
 }
 
 // Certificate Type Enum
-enum CertificateType {
-  caSigned,
-  caOnly,
-  selfSigned,
-  mutualTls,
-  none
-}
+enum CertificateType { caSigned, caOnly, selfSigned, mutualTls, none }
 
 // Connection Profile Class
 class ConnectionProfile {
@@ -48,7 +41,7 @@ class ConnectionProfile {
   final int willQos;
   final bool willRetain;
   final DateTime createdAt;
-  
+
   // Certificate Fields
   final CertificateType certificateType;
   final String? caCertificatePath;
@@ -111,45 +104,41 @@ class ConnectionProfile {
     };
   }
 
-
-
 // In ProfileHelper class, fix the fromMap method if needed:
-factory ConnectionProfile.fromMap(Map<String, dynamic> map) {
-  // Safely parse certificateType
-  final certTypeIndex = (map['certificateType'] as int?) ?? CertificateType.none.index;
-  final certType = CertificateType.values[certTypeIndex];
-  
-  return ConnectionProfile(
-    id: map['id'] as String,
-    name: map['name'] as String,
-    brokerUrl: map['brokerUrl'] as String,
-    clientId: map['clientId'] as String,
-    username: map['username'] as String,
-    password: map['password'] as String,
-    enableAuth: (map['enableAuth'] as int?) == 1,
-    cleanSession: (map['cleanSession'] as int?) == 1,
-    keepAlive: (map['keepAlive'] as int?) ?? 60,
-    defaultQos: (map['defaultQos'] as int?) ?? 0,
-    enableWill: (map['enableWill'] as int?) == 1,
-    willTopic: map['willTopic'] as String,
-    willPayload: map['willPayload'] as String,
-    willQos: (map['willQos'] as int?) ?? 0,
-    willRetain: (map['willRetain'] as int?) == 1,
-    createdAt: DateTime.fromMillisecondsSinceEpoch((map['createdAt'] as int?) ?? 0),
-    // Certificate fields with safe casting
-    certificateType: certType,
-    caCertificatePath: map['caCertificatePath'] as String?,
-    clientCertificatePath: map['clientCertificatePath'] as String?,
-    clientPrivateKeyPath: map['clientPrivateKeyPath'] as String?,
-    clientKeyPassword: map['clientKeyPassword'] as String?,
-    verifyCertificate: (map['verifyCertificate'] as int?) == 1,
-  );
+  factory ConnectionProfile.fromMap(Map<String, dynamic> map) {
+    // Safely parse certificateType
+    final certTypeIndex =
+        (map['certificateType'] as int?) ?? CertificateType.none.index;
+    final certType = CertificateType.values[certTypeIndex];
+
+    return ConnectionProfile(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      brokerUrl: map['brokerUrl'] as String,
+      clientId: map['clientId'] as String,
+      username: map['username'] as String,
+      password: map['password'] as String,
+      enableAuth: (map['enableAuth'] as int?) == 1,
+      cleanSession: (map['cleanSession'] as int?) == 1,
+      keepAlive: (map['keepAlive'] as int?) ?? 60,
+      defaultQos: (map['defaultQos'] as int?) ?? 0,
+      enableWill: (map['enableWill'] as int?) == 1,
+      willTopic: map['willTopic'] as String,
+      willPayload: map['willPayload'] as String,
+      willQos: (map['willQos'] as int?) ?? 0,
+      willRetain: (map['willRetain'] as int?) == 1,
+      createdAt:
+          DateTime.fromMillisecondsSinceEpoch((map['createdAt'] as int?) ?? 0),
+      // Certificate fields with safe casting
+      certificateType: certType,
+      caCertificatePath: map['caCertificatePath'] as String?,
+      clientCertificatePath: map['clientCertificatePath'] as String?,
+      clientPrivateKeyPath: map['clientPrivateKeyPath'] as String?,
+      clientKeyPassword: map['clientKeyPassword'] as String?,
+      verifyCertificate: (map['verifyCertificate'] as int?) == 1,
+    );
+  }
 }
-}
-
-
-
-
 
 // Message Template Class
 class MessageTemplate {
@@ -208,7 +197,7 @@ class ProfileHelper {
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final dbFile = path.join(dbPath, 'mqtt_profiles.db');
-    
+
     return await openDatabase(
       dbFile,
       version: 3, // Updated version for certificate fields
@@ -301,7 +290,8 @@ class ProfileHelper {
   Future<List<ConnectionProfile>> getAllProfiles() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('profiles');
-    return List.generate(maps.length, (i) => ConnectionProfile.fromMap(maps[i]));
+    return List.generate(
+        maps.length, (i) => ConnectionProfile.fromMap(maps[i]));
   }
 
   Future<int> deleteProfile(String id) async {
@@ -335,13 +325,14 @@ class ProfileHelper {
     final data = jsonDecode(jsonData);
     final List<dynamic> profilesData = data['profiles'];
     int count = 0;
-    
+
     for (final profileData in profilesData) {
-      final profile = ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
+      final profile =
+          ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
       await insertProfile(profile);
       count++;
     }
-    
+
     return count;
   }
 }
@@ -359,7 +350,7 @@ class TemplateHelper {
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final dbFile = path.join(dbPath, 'mqtt_templates.db');
-    
+
     return await openDatabase(
       dbFile,
       version: 2,
@@ -416,7 +407,7 @@ class TemplateHelper {
           createdAt: DateTime.now(),
         ),
       ];
-      
+
       for (final template in defaultTemplates) {
         await insertTemplate(template);
       }
@@ -465,13 +456,14 @@ class TemplateHelper {
     final data = jsonDecode(jsonData);
     final List<dynamic> templatesData = data['templates'];
     int count = 0;
-    
+
     for (final templateData in templatesData) {
-      final template = MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
+      final template =
+          MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
       await insertTemplate(template);
       count++;
     }
-    
+
     return count;
   }
 }
@@ -490,10 +482,8 @@ class _MqttCorrectState extends State<MqttCorrect> {
   final pubTopicCtrl = TextEditingController(text: 'test/topic');
   final payloadCtrl = TextEditingController(text: '{"message":"flutter mqtt"}');
 
-
-
   // Add this with your other controller variables
- final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   // PROFILE MANAGEMENT VARIABLES
   final ProfileHelper _profileHelper = ProfileHelper();
@@ -516,7 +506,7 @@ class _MqttCorrectState extends State<MqttCorrect> {
   String? _clientKeyPassword;
   bool _verifyCertificate = true;
   final keyPasswordCtrl = TextEditingController();
-  
+
   // For testing self-signed certificates (backward compatibility)
   bool _allowSelfSigned = true;
 
@@ -531,22 +521,22 @@ class _MqttCorrectState extends State<MqttCorrect> {
   int _reconnectAttempts = 0;
   final int _maxReconnectAttempts = 5;
   Timer? _reconnectTimer;
-  
+
   // CONNECTION HEALTH MONITORING
   Timer? _connectionHealthTimer;
   int _missedPings = 0;
   final int _maxMissedPings = 3;
-  
+
   // Connection uptime tracking
   DateTime? _connectionStartTime;
   Timer? _uptimeTimer;
   Duration _connectionUptime = Duration.zero;
-  
+
   // Keep-alive timer
   Timer? _keepAliveTimer;
 
   // retain message
-  bool _retainMessage = false; 
+  bool _retainMessage = false;
 
   // WILL MESSAGE VARIABLES
   bool _enableWillMessage = false;
@@ -559,12 +549,11 @@ class _MqttCorrectState extends State<MqttCorrect> {
   MqttServerClient? _client;
   MqttQos _qos = MqttQos.atMostOnce;
 
-
   // Use ConnectionState enum instead of boolean
   ConnectionState _connectionState = ConnectionState.disconnected;
-  
+
   StreamSubscription? _updatesSub;
-  
+
   // Data structures to track messages and subscriptions
   List<Message> _messages = [];
   final List<Subscription> _subscriptions = [];
@@ -585,7 +574,7 @@ class _MqttCorrectState extends State<MqttCorrect> {
 
   // Message limit to prevent memory issues
   static const int _maxMessages = 1000;
-  
+
   // NEW: Track if we need to restore subscriptions
   bool _shouldRestoreSubscriptions = false;
 
@@ -600,17 +589,16 @@ class _MqttCorrectState extends State<MqttCorrect> {
     _initializeProfiles();
     _initializeTemplates();
     // Generate a unique client ID on startup
-    clientIdCtrl.text = 'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(4)}';
-
+    clientIdCtrl.text =
+        'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(4)}';
   }
 
   // Generate random string for client ID
   String _generateRandomString(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final random = Random();
-    return String.fromCharCodes(
-      Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length)))
-    );
+    return String.fromCharCodes(Iterable.generate(
+        length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
   // FORMAT DURATION FOR UPTIME DISPLAY
@@ -618,7 +606,7 @@ class _MqttCorrectState extends State<MqttCorrect> {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m ${seconds}s';
     } else if (minutes > 0) {
@@ -628,78 +616,79 @@ class _MqttCorrectState extends State<MqttCorrect> {
     }
   }
 
-
-void _showBrokerHelp() {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('MQTT Ports & Authentication'),
-      content: const SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('📌 Important:', style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('• Port numbers DO NOT determine authentication requirements'),
-            Text('• Each broker configures ports differently'),
-            SizedBox(height: 12),
-            Text('🔧 Common Patterns (NOT rules):', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('• 1883: Often unauthenticated (but not always)'),
-            Text('• 1884: Sometimes authenticated'),
-            Text('• 8883: SSL/TLS often unauthenticated'),
-            Text('• 8884: SSL/TLS sometimes authenticated'),
-            SizedBox(height: 12),
-            Text('💡 How to know:'),
-            Text('1. Check your broker documentation'),
-            Text('2. Ask your system administrator'),
-            Text('3. Try with/without credentials'),
-            SizedBox(height: 12),
-            Text('🧪 Current Public Brokers:'),
-            Text('• EMQX 1883: Works without auth'),
-            Text('• EMQX 1884: May or may not work'),
-            Text('• Mosquitto: All ports work without auth'),
-          ],
+  void _showBrokerHelp() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('MQTT Ports & Authentication'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('📌 Important:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Text(
+                  '• Port numbers DO NOT determine authentication requirements'),
+              Text('• Each broker configures ports differently'),
+              SizedBox(height: 12),
+              Text('🔧 Common Patterns (NOT rules):',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('• 1883: Often unauthenticated (but not always)'),
+              Text('• 1884: Sometimes authenticated'),
+              Text('• 8883: SSL/TLS often unauthenticated'),
+              Text('• 8884: SSL/TLS sometimes authenticated'),
+              SizedBox(height: 12),
+              Text('💡 How to know:'),
+              Text('1. Check your broker documentation'),
+              Text('2. Ask your system administrator'),
+              Text('3. Try with/without credentials'),
+              SizedBox(height: 12),
+              Text('🧪 Current Public Brokers:'),
+              Text('• EMQX 1883: Works without auth'),
+              Text('• EMQX 1884: May or may not work'),
+              Text('• Mosquitto: All ports work without auth'),
+            ],
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('I Understand'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('I Understand'),
-        ),
-      ],
-    ),
-  );
-}
-
-
-
-Future<void> _debugDatabaseContents() async {
-  try {
-    _logMessage('Debug', '=== DATABASE CONTENTS ===', isIncoming: false);
-    
-    // Check profiles
-    final profiles = await _profileHelper.getAllProfiles();
-    _logMessage('Debug', 'Profiles in DB: ${profiles.length}', isIncoming: false);
-    for (final profile in profiles) {
-      _logMessage('Debug', '  - ${profile.name} (ID: ${profile.id})', isIncoming: false);
-    }
-    
-    // Check templates
-    final templates = await _templateHelper.getAllTemplates();
-    _logMessage('Debug', 'Templates in DB: ${templates.length}', isIncoming: false);
-    for (final template in templates) {
-      _logMessage('Debug', '  - ${template.name} (ID: ${template.id})', isIncoming: false);
-    }
-    
-    _logMessage('Debug', '=== END DATABASE CONTENTS ===', isIncoming: false);
-  } catch (e) {
-    _logMessage('Debug', 'Error checking DB: $e', isIncoming: false);
+    );
   }
-}
 
+  Future<void> _debugDatabaseContents() async {
+    try {
+      _logMessage('Debug', '=== DATABASE CONTENTS ===', isIncoming: false);
 
+      // Check profiles
+      final profiles = await _profileHelper.getAllProfiles();
+      _logMessage('Debug', 'Profiles in DB: ${profiles.length}',
+          isIncoming: false);
+      for (final profile in profiles) {
+        _logMessage('Debug', '  - ${profile.name} (ID: ${profile.id})',
+            isIncoming: false);
+      }
 
+      // Check templates
+      final templates = await _templateHelper.getAllTemplates();
+      _logMessage('Debug', 'Templates in DB: ${templates.length}',
+          isIncoming: false);
+      for (final template in templates) {
+        _logMessage('Debug', '  - ${template.name} (ID: ${template.id})',
+            isIncoming: false);
+      }
+
+      _logMessage('Debug', '=== END DATABASE CONTENTS ===', isIncoming: false);
+    } catch (e) {
+      _logMessage('Debug', 'Error checking DB: $e', isIncoming: false);
+    }
+  }
 
   // START UPTIME TRACKER
   void _startUptimeTracker() {
@@ -724,34 +713,37 @@ Future<void> _debugDatabaseContents() async {
   // KEEP-ALIVE SYSTEM
   void _startKeepAlive() {
     _keepAliveTimer?.cancel();
-    
+
     final keepAliveSeconds = int.tryParse(keepAliveCtrl.text) ?? 60;
     final intervalSeconds = (keepAliveSeconds / 2).clamp(10, 30).toInt();
-    
-    _logMessage('KeepAlive', '⏱️ Starting keep-alive every $intervalSeconds seconds', isIncoming: false);
-    
-    _keepAliveTimer = Timer.periodic(Duration(seconds: intervalSeconds), (timer) {
+
+    _logMessage(
+        'KeepAlive', '⏱️ Starting keep-alive every $intervalSeconds seconds',
+        isIncoming: false);
+
+    _keepAliveTimer =
+        Timer.periodic(Duration(seconds: intervalSeconds), (timer) {
       if (_connectionState == ConnectionState.connected && _client != null) {
         try {
           final builder = MqttClientPayloadBuilder()
-            ..addString('{"type":"keepalive","timestamp":${DateTime.now().millisecondsSinceEpoch},"client":"${clientIdCtrl.text}"}');
-          
-          _client!.publishMessage(
-            '\$SYS/${clientIdCtrl.text}/keepalive',
-            MqttQos.atMostOnce,
-            builder.payload!
-          );
-          
+            ..addString(
+                '{"type":"keepalive","timestamp":${DateTime.now().millisecondsSinceEpoch},"client":"${clientIdCtrl.text}"}');
+
+          _client!.publishMessage('\$SYS/${clientIdCtrl.text}/keepalive',
+              MqttQos.atMostOnce, builder.payload!);
+
           _logMessage('KeepAlive', '💓 Keep-alive sent', isIncoming: false);
-          
+
           _missedPings = (_missedPings - 1).clamp(0, _maxMissedPings);
-          
         } catch (e) {
-          _logMessage('KeepAlive', '❌ Keep-alive failed: $e', isIncoming: false);
+          _logMessage('KeepAlive', '❌ Keep-alive failed: $e',
+              isIncoming: false);
           _missedPings++;
-          
+
           if (_missedPings >= _maxMissedPings && _autoReconnect) {
-            _logMessage('Connection', '🔄 Too many missed keep-alives, attempting reconnect', isIncoming: false);
+            _logMessage('Connection',
+                '🔄 Too many missed keep-alives, attempting reconnect',
+                isIncoming: false);
             _forceReconnect();
           }
         }
@@ -766,15 +758,19 @@ Future<void> _debugDatabaseContents() async {
   // INITIALIZE TEMPLATES
   Future<void> _initializeTemplates() async {
     try {
-        _logMessage('Templates', '🔄 Initializing tepmlates...', isIncoming: false);
+      _logMessage('Templates', '🔄 Initializing tepmlates...',
+          isIncoming: false);
       await _templateHelper.createDefaultTemplates();
       final templates = await _templateHelper.getAllTemplates();
-      _logMessage('Templates', '📊 Loaded ${templates.length} Templates from DB', isIncoming: false);
+      _logMessage(
+          'Templates', '📊 Loaded ${templates.length} Templates from DB',
+          isIncoming: false);
       setState(() {
         _templates = templates;
       });
     } catch (e) {
-      _logMessage('Templates', 'Error loading templates: $e', isIncoming: false);
+      _logMessage('Templates', 'Error loading templates: $e',
+          isIncoming: false);
     }
   }
 
@@ -787,101 +783,98 @@ Future<void> _debugDatabaseContents() async {
       _qos = MqttQos.values[template.qos.clamp(0, 2)];
       _retainMessage = template.retain;
     });
-    _logMessage('Templates', '✅ Loaded template: ${template.name}', isIncoming: false);
+    _logMessage('Templates', '✅ Loaded template: ${template.name}',
+        isIncoming: false);
   }
 
+  Future<void> _saveCurrentAsTemplate() async {
+    _logMessage('Templates', '🔄 Starting to save template...',
+        isIncoming: false);
 
+    final template = MessageTemplate(
+      id: DateTime.now()
+          .millisecondsSinceEpoch
+          .toString(), // Make sure this is unique!
+      name: 'Template ${_templates.length + 1}',
+      topic: pubTopicCtrl.text.trim(),
+      payload: payloadCtrl.text.trim(),
+      qos: _qos.index,
+      retain: _retainMessage,
+      createdAt: DateTime.now(),
+    );
 
-Future<void> _saveCurrentAsTemplate() async {
-  _logMessage('Templates', '🔄 Starting to save template...', isIncoming: false);
-  
-  final template = MessageTemplate(
-    id: DateTime.now().millisecondsSinceEpoch.toString(), // Make sure this is unique!
-    name: 'Template ${_templates.length + 1}',
-    topic: pubTopicCtrl.text.trim(),
-    payload: payloadCtrl.text.trim(),
-    qos: _qos.index,
-    retain: _retainMessage,
-    createdAt: DateTime.now(),
-  );
-  
-  _logMessage('Templates', '📝 Created template object: ${template.name} (ID: ${template.id})', isIncoming: false);
-  
-  try {
-    final result = await _templateHelper.insertTemplate(template);
-    _logMessage('Templates', '✅ Database insert result: $result', isIncoming: false);
-    
-    final templates = await _templateHelper.getAllTemplates();
-    _logMessage('Templates', '📊 Total templates after save: ${templates.length}', isIncoming: false);
-    
-    setState(() {
-      _templates = templates;
-      _currentTemplate = template;
-    });
-    _logMessage('Templates', '✅ Template saved: ${template.name}', isIncoming: false);
-  } catch (e) {
-    _logMessage('Templates', '❌ Error saving template: $e', isIncoming: false);
-    _logMessage('Templates', '💡 Stack trace: ${e.toString()}', isIncoming: false);
+    _logMessage('Templates',
+        '📝 Created template object: ${template.name} (ID: ${template.id})',
+        isIncoming: false);
+
+    try {
+      final result = await _templateHelper.insertTemplate(template);
+      _logMessage('Templates', '✅ Database insert result: $result',
+          isIncoming: false);
+
+      final templates = await _templateHelper.getAllTemplates();
+      _logMessage(
+          'Templates', '📊 Total templates after save: ${templates.length}',
+          isIncoming: false);
+
+      setState(() {
+        _templates = templates;
+        _currentTemplate = template;
+      });
+      _logMessage('Templates', '✅ Template saved: ${template.name}',
+          isIncoming: false);
+    } catch (e) {
+      _logMessage('Templates', '❌ Error saving template: $e',
+          isIncoming: false);
+      _logMessage('Templates', '💡 Stack trace: ${e.toString()}',
+          isIncoming: false);
+    }
   }
-}
 
+  void _deleteTemplate(MessageTemplate template) async {
+    try {
+      await _templateHelper.deleteTemplate(template.id);
+      final templates = await _templateHelper.getAllTemplates();
 
+      // Check if we're deleting the currently loaded template
+      final bool isCurrentTemplate = _currentTemplate?.id == template.id;
 
+      setState(() {
+        _templates = templates;
+        if (isCurrentTemplate) {
+          _currentTemplate = null;
+          // Clear template fields
+          _clearTemplateFields();
+        }
+      });
 
-void _deleteTemplate(MessageTemplate template) async {
-  try {
-    await _templateHelper.deleteTemplate(template.id);
-    final templates = await _templateHelper.getAllTemplates();
-    
-    // Check if we're deleting the currently loaded template
-    final bool isCurrentTemplate = _currentTemplate?.id == template.id;
-    
-    setState(() {
-      _templates = templates;
-      if (isCurrentTemplate) {
-        _currentTemplate = null;
-        // Clear template fields
-        _clearTemplateFields();
-      }
-    });
-    
-    _logMessage('Templates', '🗑️ Deleted template: ${template.name}', isIncoming: false);
-    
-  } catch (e) {
-    _logMessage('Templates', '❌ Error deleting template: $e', isIncoming: false);
+      _logMessage('Templates', '🗑️ Deleted template: ${template.name}',
+          isIncoming: false);
+    } catch (e) {
+      _logMessage('Templates', '❌ Error deleting template: $e',
+          isIncoming: false);
+    }
   }
-}
 
 // Add this helper method to clear template fields
-void _clearTemplateFields() {
-  setState(() {
-    pubTopicCtrl.text = 'test/topic';
-    payloadCtrl.text = '{"message":"flutter mqtt"}';
-    _qos = MqttQos.atMostOnce;
-    _retainMessage = false;
-  });
-  _logMessage('Templates', '🧹 Cleared template fields', isIncoming: false);
-}
-
-
-
-
-
-
-
-
-
-
-
+  void _clearTemplateFields() {
+    setState(() {
+      pubTopicCtrl.text = 'test/topic';
+      payloadCtrl.text = '{"message":"flutter mqtt"}';
+      _qos = MqttQos.atMostOnce;
+      _retainMessage = false;
+    });
+    _logMessage('Templates', '🧹 Cleared template fields', isIncoming: false);
+  }
 
   // MESSAGE SEARCH FUNCTIONALITY WITH DEBOUNCE
   List<Message> get _filteredMessages {
     if (_searchQuery.isEmpty) return _messages;
-    
+
     final query = _searchQuery.toLowerCase();
     return _messages.where((message) {
       return message.topic.toLowerCase().contains(query) ||
-             message.payload.toLowerCase().contains(query);
+          message.payload.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -909,15 +902,17 @@ void _clearTemplateFields() {
     return true;
   }
 
-
   // CONNECTION HEALTH MONITORING
   void _startConnectionHealthCheck() {
     _connectionHealthTimer?.cancel();
-    _connectionHealthTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _connectionHealthTimer =
+        Timer.periodic(const Duration(seconds: 10), (timer) {
       if (_connectionState == ConnectionState.connected && _client != null) {
         _missedPings++;
         if (_missedPings >= _maxMissedPings) {
-          _logMessage('Connection', '🫀 Connection seems dead, forcing reconnect', isIncoming: false);
+          _logMessage(
+              'Connection', '🫀 Connection seems dead, forcing reconnect',
+              isIncoming: false);
           _client?.disconnect();
           _onDisconnectedWithReconnect();
         }
@@ -925,64 +920,48 @@ void _clearTemplateFields() {
     });
   }
 
-
-
-
-
-
 // Instead of auto-enabling auth, show a suggestion
-void _showAuthSuggestion(String url) {
-  try {
-    final uri = Uri.parse(url);
-    final port = uri.port;
-    
-    // Common patterns (NOT rules, just suggestions)
-    final oftenAuthPorts = [1884, 8884];
-    final oftenNoAuthPorts = [1883, 8883];
-    
-    if (oftenAuthPorts.contains(port) && !_enableAuth) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Authentication Suggestion'),
-            content: Text(
-              'Port $port often requires authentication on SOME brokers.\n\n'
-              'Do you want to enable authentication?\n\n'
-              'Note: This depends on your broker configuration.',
+  void _showAuthSuggestion(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final port = uri.port;
+
+      // Common patterns (NOT rules, just suggestions)
+      final oftenAuthPorts = [1884, 8884];
+      final oftenNoAuthPorts = [1883, 8883];
+
+      if (oftenAuthPorts.contains(port) && !_enableAuth) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Authentication Suggestion'),
+              content: Text(
+                'Port $port often requires authentication on SOME brokers.\n\n'
+                'Do you want to enable authentication?\n\n'
+                'Note: This depends on your broker configuration.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('No'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() => _enableAuth = true);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Enable Auth'),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('No'),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() => _enableAuth = true);
-                  Navigator.pop(context);
-                },
-                child: const Text('Enable Auth'),
-              ),
-            ],
-          ),
-        );
-      });
+          );
+        });
+      }
+    } catch (e) {
+      // Ignore errors
     }
-  } catch (e) {
-    // Ignore errors
   }
-}
-
-
-
-
-
-
-
-
-
-
-
 
   // AUTO-RECONNECT FUNCTIONALITY
   void _setupAutoReconnect() {
@@ -992,29 +971,30 @@ void _showAuthSuggestion(String url) {
   void _onDisconnectedWithReconnect() {
     _logMessage('Connection', '🔌 Connection lost', isIncoming: false);
     setState(() => _connectionState = ConnectionState.disconnected);
-    
+
     _connectionHealthTimer?.cancel();
     _stopUptimeTracker();
     _stopKeepAlive();
-    
+
     _shouldRestoreSubscriptions = true;
-    
+
     if (_autoReconnect && _reconnectAttempts < _maxReconnectAttempts) {
       _reconnectAttempts++;
       setState(() => _connectionState = ConnectionState.reconnecting);
-      
+
       final delaySeconds = _reconnectAttempts * 2;
-      _logMessage('Connection', 
-          '🔄 Auto-reconnect attempt $_reconnectAttempts/$_maxReconnectAttempts in ${delaySeconds}s', 
+      _logMessage('Connection',
+          '🔄 Auto-reconnect attempt $_reconnectAttempts/$_maxReconnectAttempts in ${delaySeconds}s',
           isIncoming: false);
-      
+
       _reconnectTimer = Timer(Duration(seconds: delaySeconds), () {
-        _logMessage('Connection', '🔗 Attempting to reconnect...', isIncoming: false);
+        _logMessage('Connection', '🔗 Attempting to reconnect...',
+            isIncoming: false);
         _connect();
       });
     } else if (_reconnectAttempts >= _maxReconnectAttempts) {
-      _logMessage('Connection', 
-          '❌ Max reconnect attempts ($_maxReconnectAttempts) reached. Giving up.', 
+      _logMessage('Connection',
+          '❌ Max reconnect attempts ($_maxReconnectAttempts) reached. Giving up.',
           isIncoming: false);
       setState(() => _connectionState = ConnectionState.error);
     }
@@ -1022,7 +1002,8 @@ void _showAuthSuggestion(String url) {
 
   // MANUAL RECONNECT TRIGGER
   void _forceReconnect() {
-    _logMessage('Connection', '🔄 Manual reconnect triggered', isIncoming: false);
+    _logMessage('Connection', '🔄 Manual reconnect triggered',
+        isIncoming: false);
     _cancelAutoReconnect();
     _reconnectAttempts = 0;
     if (_connectionState == ConnectionState.connected) {
@@ -1044,12 +1025,14 @@ void _showAuthSuggestion(String url) {
       allowedExtensions: ['pem', 'crt', 'cer', 'der'],
       allowMultiple: false,
     );
-    
+
     if (result != null && result.files.single.path != null) {
       setState(() {
         _caCertificatePath = result.files.single.path!;
       });
-      _logMessage('Security', '📄 CA Certificate selected: ${path.basename(_caCertificatePath!)}', isIncoming: false);
+      _logMessage('Security',
+          '📄 CA Certificate selected: ${path.basename(_caCertificatePath!)}',
+          isIncoming: false);
       _loadCertificateInfo(_caCertificatePath!);
     }
   }
@@ -1060,12 +1043,13 @@ void _showAuthSuggestion(String url) {
       allowedExtensions: ['pem', 'crt', 'cer', 'der'],
       allowMultiple: false,
     );
-    
+
     if (result != null && result.files.single.path != null) {
       setState(() {
         _clientCertificatePath = result.files.single.path!;
       });
-      _logMessage('Security', '📄 Client Certificate selected', isIncoming: false);
+      _logMessage('Security', '📄 Client Certificate selected',
+          isIncoming: false);
     }
   }
 
@@ -1075,7 +1059,7 @@ void _showAuthSuggestion(String url) {
       allowedExtensions: ['key', 'pem', 'der'],
       allowMultiple: false,
     );
-    
+
     if (result != null && result.files.single.path != null) {
       setState(() {
         _clientPrivateKeyPath = result.files.single.path!;
@@ -1084,99 +1068,88 @@ void _showAuthSuggestion(String url) {
     }
   }
 
-  
+  Future<void> _loadCertificateInfo(String certPath) async {
+    try {
+      final file = File(certPath);
+      final size = await file.length();
+      final content = await file.readAsString();
 
-Future<void> _loadCertificateInfo(String certPath) async {
-  try {
-    final file = File(certPath);
-    final size = await file.length();
-    final content = await file.readAsString();
-    
-    String info = 'Certificate Information:\n';
-    info += '• Path: ${path.basename(certPath)}\n';
-    info += '• Size: $size bytes\n';
-    info += '• Type: ';
-    
-    if (content.contains('-----BEGIN CERTIFICATE-----')) {
-      info += 'X.509 Certificate (PEM)\n';
-      info += '• Format: PEM\n';
-      
-      // Basic validation - SAFE and SIMPLE
-      final start = content.indexOf('-----BEGIN CERTIFICATE-----');
-      final end = content.indexOf('-----END CERTIFICATE-----');
-      
-      if (start != -1 && end != -1 && end > start) {
-        final certContent = content.substring(start, end + 25);
-        final lines = certContent.split('\n');
-        
-        info += '• Lines: ${lines.length}\n';
-        
-        // Show first few lines of base64 content
-        bool inBase64 = false;
-        int base64Lines = 0;
-        for (final line in lines) {
-          if (line.contains('BEGIN CERTIFICATE')) inBase64 = true;
-          if (line.contains('END CERTIFICATE')) break;
-          if (inBase64 && line.isNotEmpty && !line.contains('---')) {
-            base64Lines++;
+      String info = 'Certificate Information:\n';
+      info += '• Path: ${path.basename(certPath)}\n';
+      info += '• Size: $size bytes\n';
+      info += '• Type: ';
+
+      if (content.contains('-----BEGIN CERTIFICATE-----')) {
+        info += 'X.509 Certificate (PEM)\n';
+        info += '• Format: PEM\n';
+
+        // Basic validation - SAFE and SIMPLE
+        final start = content.indexOf('-----BEGIN CERTIFICATE-----');
+        final end = content.indexOf('-----END CERTIFICATE-----');
+
+        if (start != -1 && end != -1 && end > start) {
+          final certContent = content.substring(start, end + 25);
+          final lines = certContent.split('\n');
+
+          info += '• Lines: ${lines.length}\n';
+
+          // Show first few lines of base64 content
+          bool inBase64 = false;
+          int base64Lines = 0;
+          for (final line in lines) {
+            if (line.contains('BEGIN CERTIFICATE')) inBase64 = true;
+            if (line.contains('END CERTIFICATE')) break;
+            if (inBase64 && line.isNotEmpty && !line.contains('---')) {
+              base64Lines++;
+            }
           }
-        }
-        info += '• Base64 lines: $base64Lines\n';
-        
-        if (base64Lines > 1) {
-          info += '• ✅ Valid PEM structure\n';
+          info += '• Base64 lines: $base64Lines\n';
+
+          if (base64Lines > 1) {
+            info += '• ✅ Valid PEM structure\n';
+          } else {
+            info += '• ⚠️ Possibly empty/invalid\n';
+          }
         } else {
-          info += '• ⚠️ Possibly empty/invalid\n';
+          info += '• ❌ Invalid PEM format\n';
         }
+      } else if (content.contains('-----BEGIN PRIVATE KEY-----')) {
+        info += 'Private Key (PEM)\n';
+        info += '• Format: PKCS#8 Private Key\n';
+        info += '• ⚠️ Warning: This is a PRIVATE KEY - keep secure!\n';
+      } else if (content.contains('-----BEGIN RSA PRIVATE KEY-----')) {
+        info += 'RSA Private Key (PEM)\n';
+        info += '• Format: RSA Private Key\n';
+        info += '• ⚠️ Warning: This is a PRIVATE KEY - keep secure!\n';
       } else {
-        info += '• ❌ Invalid PEM format\n';
+        info += 'Unknown format\n';
+        info +=
+            '• First 50 chars: ${content.length > 50 ? '${content.substring(0, 50)}...' : content}\n';
       }
-      
-    } else if (content.contains('-----BEGIN PRIVATE KEY-----')) {
-      info += 'Private Key (PEM)\n';
-      info += '• Format: PKCS#8 Private Key\n';
-      info += '• ⚠️ Warning: This is a PRIVATE KEY - keep secure!\n';
-      
-    } else if (content.contains('-----BEGIN RSA PRIVATE KEY-----')) {
-      info += 'RSA Private Key (PEM)\n';
-      info += '• Format: RSA Private Key\n';
-      info += '• ⚠️ Warning: This is a PRIVATE KEY - keep secure!\n';
-      
-    } else {
-      info += 'Unknown format\n';
-      info += '• First 50 chars: ${content.length > 50 ? content.substring(0, 50) + '...' : content}\n';
-    }
-    
-    // ADD A SMALL DELAY to prevent rapid UI updates
-    await Future.delayed(Duration(milliseconds: 50));
-    
-    if (mounted) {
-      setState(() {
-        _certificateInfo = info;
-        _showCertificateInfo = true;
-      });
-    }
-  } catch (e) {
-    print('Error in _loadCertificateInfo: $e');
-    
-    // ADD DELAY before error display too
-    await Future.delayed(Duration(milliseconds: 50));
-    
-    if (mounted) {
-      setState(() {
-        _certificateInfo = 'Error reading file:\n${e.toString()}';
-        _showCertificateInfo = true;
-      });
+
+      // ADD A SMALL DELAY to prevent rapid UI updates
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      if (mounted) {
+        setState(() {
+          _certificateInfo = info;
+          _showCertificateInfo = true;
+        });
+      }
+    } catch (e) {
+      print('Error in _loadCertificateInfo: $e');
+
+      // ADD DELAY before error display too
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      if (mounted) {
+        setState(() {
+          _certificateInfo = 'Error reading file:\n${e.toString()}';
+          _showCertificateInfo = true;
+        });
+      }
     }
   }
-}
-
-
-
-
-
-
-
 
   // CLEAR CERTIFICATE FILES
   void _clearCertificateFiles() {
@@ -1189,123 +1162,145 @@ Future<void> _loadCertificateInfo(String certPath) async {
       _certificateInfo = 'No certificate loaded';
       _showCertificateInfo = false;
     });
-    _logMessage('Security', '🧹 Cleared all certificate files', isIncoming: false);
+    _logMessage('Security', '🧹 Cleared all certificate files',
+        isIncoming: false);
   }
 
   // CREATE SECURITY CONTEXT WITH CERTIFICATES
   Future<SecurityContext> _createSecurityContext() async {
-
-
-     _logMessage('Security', 'Creating security context for ${_getCertificateTypeName()}', isIncoming: false);
+    _logMessage('Security',
+        'Creating security context for ${_getCertificateTypeName()}',
+        isIncoming: false);
     final context = SecurityContext.defaultContext;
-    
+
     switch (_certificateType) {
       case CertificateType.caSigned:
-
-_logMessage('Security', '🔐 Configuring CA Signed context', isIncoming: false);
-
+        _logMessage('Security', '🔐 Configuring CA Signed context',
+            isIncoming: false);
 
         if (_caCertificatePath != null) {
           try {
-
-             _logMessage('Security', '📄 Loading CA cert from: $_caCertificatePath', isIncoming: false);
+            _logMessage(
+                'Security', '📄 Loading CA cert from: $_caCertificatePath',
+                isIncoming: false);
             final caCert = await File(_caCertificatePath!).readAsBytes();
             context.setTrustedCertificatesBytes(caCert);
-            _logMessage('Security', '✅ CA certificate loaded and set as trusted', isIncoming: false);
-
+            _logMessage(
+                'Security', '✅ CA certificate loaded and set as trusted',
+                isIncoming: false);
           } catch (e) {
-            _logMessage('Security', '❌ Error loading CA certificate: $e', isIncoming: false);
+            _logMessage('Security', '❌ Error loading CA certificate: $e',
+                isIncoming: false);
           }
         } else {
-          _logMessage('Security', '⚠️ No CA certificate provided, using system defaults', isIncoming: false);
+          _logMessage('Security',
+              '⚠️ No CA certificate provided, using system defaults',
+              isIncoming: false);
         }
         break;
-        
+
       case CertificateType.caOnly:
         if (_caCertificatePath != null) {
           try {
             final caCert = await File(_caCertificatePath!).readAsBytes();
             context.setTrustedCertificatesBytes(caCert);
-            _logMessage('Security', '✅ Using CA certificate only', isIncoming: false);
+            _logMessage('Security', '✅ Using CA certificate only',
+                isIncoming: false);
           } catch (e) {
-            _logMessage('Security', '❌ Error loading CA certificate: $e', isIncoming: false);
+            _logMessage('Security', '❌ Error loading CA certificate: $e',
+                isIncoming: false);
           }
         }
         break;
-        
+
       case CertificateType.mutualTls:
         // Mutual TLS - both client and server certificates
         if (_caCertificatePath != null) {
           try {
             final caCert = await File(_caCertificatePath!).readAsBytes();
             context.setTrustedCertificatesBytes(caCert);
-            _logMessage('Security', '✅ Using custom CA certificate', isIncoming: false);
+            _logMessage('Security', '✅ Using custom CA certificate',
+                isIncoming: false);
           } catch (e) {
-            _logMessage('Security', '❌ Error loading CA certificate: $e', isIncoming: false);
+            _logMessage('Security', '❌ Error loading CA certificate: $e',
+                isIncoming: false);
           }
         }
-        
+
         if (_clientCertificatePath != null && _clientPrivateKeyPath != null) {
           try {
-            final clientCert = await File(_clientCertificatePath!).readAsBytes();
+            final clientCert =
+                await File(_clientCertificatePath!).readAsBytes();
             final privateKey = await File(_clientPrivateKeyPath!).readAsBytes();
             context.useCertificateChainBytes(clientCert);
-            context.usePrivateKeyBytes(privateKey, password: _clientKeyPassword);
-            _logMessage('Security', '✅ Mutual TLS configured', isIncoming: false);
+            context.usePrivateKeyBytes(privateKey,
+                password: _clientKeyPassword);
+            _logMessage('Security', '✅ Mutual TLS configured',
+                isIncoming: false);
           } catch (e) {
-            _logMessage('Security', '❌ Error loading client certificate or private key: $e', isIncoming: false);
+            _logMessage('Security',
+                '❌ Error loading client certificate or private key: $e',
+                isIncoming: false);
           }
         } else {
-          _logMessage('Security', '⚠️ Client certificate or private key missing for Mutual TLS', isIncoming: false);
+          _logMessage('Security',
+              '⚠️ Client certificate or private key missing for Mutual TLS',
+              isIncoming: false);
         }
         break;
-        
+
       case CertificateType.selfSigned:
         // Self-signed certificates (accept all)
-        _logMessage('Security', '⚠️ Self-signed certificates allowed', isIncoming: false);
+        _logMessage('Security', '⚠️ Self-signed certificates allowed',
+            isIncoming: false);
         break;
-        
+
       case CertificateType.none:
         // No special certificate configuration
-        _logMessage('Security', '🔐 Using default SSL/TLS configuration', isIncoming: false);
+        _logMessage('Security', '🔐 Using default SSL/TLS configuration',
+            isIncoming: false);
         break;
 
       case CertificateType.caSigned:
-  _logMessage('Security', '=== DEBUG CA SIGNED ===', isIncoming: false);
-  _logMessage('Security', 'CA Path: $_caCertificatePath', isIncoming: false);
-  
-  if (_caCertificatePath != null) {
-    final caFile = File(_caCertificatePath!);
-    final exists = await caFile.exists();
-    _logMessage('Security', 'File exists: $exists', isIncoming: false);
-    
-    if (exists) {
-      try {
-        // Method 1: Try as file path
-        context.setTrustedCertificates(_caCertificatePath!);
-        _logMessage('Security', '✅ setTrustedCertificates() succeeded', isIncoming: false);
-      } catch (e) {
-        _logMessage('Security', '❌ Method 1 failed: $e', isIncoming: false);
-        
-        try {
-          // Method 2: Try as bytes
-          final bytes = await caFile.readAsBytes();
-          context.setTrustedCertificatesBytes(bytes);
-          _logMessage('Security', '✅ setTrustedCertificatesBytes() succeeded', isIncoming: false);
-        } catch (e2) {
-          _logMessage('Security', '❌ Method 2 failed: $e2', isIncoming: false);
+        _logMessage('Security', '=== DEBUG CA SIGNED ===', isIncoming: false);
+        _logMessage('Security', 'CA Path: $_caCertificatePath',
+            isIncoming: false);
+
+        if (_caCertificatePath != null) {
+          final caFile = File(_caCertificatePath!);
+          final exists = await caFile.exists();
+          _logMessage('Security', 'File exists: $exists', isIncoming: false);
+
+          if (exists) {
+            try {
+              // Method 1: Try as file path
+              context.setTrustedCertificates(_caCertificatePath!);
+              _logMessage('Security', '✅ setTrustedCertificates() succeeded',
+                  isIncoming: false);
+            } catch (e) {
+              _logMessage('Security', '❌ Method 1 failed: $e',
+                  isIncoming: false);
+
+              try {
+                // Method 2: Try as bytes
+                final bytes = await caFile.readAsBytes();
+                context.setTrustedCertificatesBytes(bytes);
+                _logMessage(
+                    'Security', '✅ setTrustedCertificatesBytes() succeeded',
+                    isIncoming: false);
+              } catch (e2) {
+                _logMessage('Security', '❌ Method 2 failed: $e2',
+                    isIncoming: false);
+              }
+            }
+          }
+        } else {
+          _logMessage('Security', '⚠️ No CA certificate path',
+              isIncoming: false);
         }
-      }
-    }
-  } else {
-    _logMessage('Security', '⚠️ No CA certificate path', isIncoming: false);
-  }
-  break;   
-
+        break;
     }
 
-    
-    
     return context;
   }
 
@@ -1328,18 +1323,22 @@ _logMessage('Security', '🔐 Configuring CA Signed context', isIncoming: false)
   // TEST CERTIFICATE CONNECTION
   Future<void> _testCertificateConnection() async {
     try {
-      _logMessage('Security', '🔍 Testing certificate configuration...', isIncoming: false);
-      
+      _logMessage('Security', '🔍 Testing certificate configuration...',
+          isIncoming: false);
+
       final uri = Uri.parse(urlCtrl.text.trim());
       if (uri.host.isEmpty) {
-        _logMessage('Security Test', '❌ Invalid host in URL', isIncoming: false);
+        _logMessage('Security Test', '❌ Invalid host in URL',
+            isIncoming: false);
         return;
       }
-      
+
       final securityContext = await _createSecurityContext();
-      
-      _logMessage('Security Test', 'Attempting to connect to ${uri.host}:${uri.port}...', isIncoming: false);
-      
+
+      _logMessage('Security Test',
+          'Attempting to connect to ${uri.host}:${uri.port}...',
+          isIncoming: false);
+
       final socket = await SecureSocket.connect(
         uri.host,
         uri.port,
@@ -1352,30 +1351,39 @@ Issuer: ${cert.issuer}
 SHA1: ${cert.sha1}
 ''';
           _logMessage('Security Test', certInfo, isIncoming: false);
-          
+
           if (_certificateType == CertificateType.selfSigned) {
-            _logMessage('Security Test', '✅ Self-signed certificate accepted', isIncoming: false);
+            _logMessage('Security Test', '✅ Self-signed certificate accepted',
+                isIncoming: false);
             return true;
           }
-          
+
           if (!_verifyCertificate) {
-            _logMessage('Security Test', '✅ Certificate verification disabled, accepting anyway', isIncoming: false);
+            _logMessage('Security Test',
+                '✅ Certificate verification disabled, accepting anyway',
+                isIncoming: false);
             return true;
           }
-          
-          _logMessage('Security Test', '❌ Certificate rejected due to verification failure', isIncoming: false);
+
+          _logMessage('Security Test',
+              '❌ Certificate rejected due to verification failure',
+              isIncoming: false);
           return false;
         },
       );
-      
-      _logMessage('Security Test', '✅ Certificate test successful!', isIncoming: false);
+
+      _logMessage('Security Test', '✅ Certificate test successful!',
+          isIncoming: false);
       //_logMessage('Security Test', '🔐 Connection established with TLS ${socket.protocolVersion}', isIncoming: false);
       //_logMessage('Security Test', '📡 Cipher suite: ${socket.selectedCipher.name}', isIncoming: false);
-      
+
       await socket.close();
     } catch (e) {
-      _logMessage('Security Test', '❌ Certificate test failed: $e', isIncoming: false);
-      _logMessage('Security Test', '💡 Check certificate files and server configuration', isIncoming: false);
+      _logMessage('Security Test', '❌ Certificate test failed: $e',
+          isIncoming: false);
+      _logMessage('Security Test',
+          '💡 Check certificate files and server configuration',
+          isIncoming: false);
     }
   }
 
@@ -1405,93 +1413,73 @@ SHA1: ${cert.sha1}
     );
   }
 
+  void _showRenameTemplateDialog(MessageTemplate template) {
+    final nameController = TextEditingController(text: template.name);
 
-
-
-
-void _showRenameTemplateDialog(MessageTemplate template) {
-  final nameController = TextEditingController(text: template.name);
-  
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Rename Template'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Template Name',
-            hintText: 'Enter template name',
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Rename Template'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: 'Template Name',
+              hintText: 'Enter template name',
+            ),
+            autofocus: true,
           ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (nameController.text.trim().isNotEmpty) {
-                _renameTemplate(template, nameController.text.trim());
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Rename'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-Future<void> _renameTemplate(MessageTemplate template, String newName) async {
-  try {
-    final updatedTemplate = MessageTemplate(
-      id: template.id,
-      name: newName,
-      topic: template.topic,
-      payload: template.payload,
-      qos: template.qos,
-      retain: template.retain,
-      createdAt: template.createdAt,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (nameController.text.trim().isNotEmpty) {
+                  _renameTemplate(template, nameController.text.trim());
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Rename'),
+            ),
+          ],
+        );
+      },
     );
-    
-    await _templateHelper.updateTemplate(updatedTemplate);
-    final templates = await _templateHelper.getAllTemplates();
-    setState(() {
-      _templates = templates;
-      if (_currentTemplate?.id == template.id) {
-        _currentTemplate = updatedTemplate;
-      }
-    });
-    _logMessage('Templates', '✅ Renamed template to: $newName', isIncoming: false);
-  } catch (e) {
-    _logMessage('Templates', '❌ Error renaming template: $e', isIncoming: false);
   }
-}
 
+  Future<void> _renameTemplate(MessageTemplate template, String newName) async {
+    try {
+      final updatedTemplate = MessageTemplate(
+        id: template.id,
+        name: newName,
+        topic: template.topic,
+        payload: template.payload,
+        qos: template.qos,
+        retain: template.retain,
+        createdAt: template.createdAt,
+      );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      await _templateHelper.updateTemplate(updatedTemplate);
+      final templates = await _templateHelper.getAllTemplates();
+      setState(() {
+        _templates = templates;
+        if (_currentTemplate?.id == template.id) {
+          _currentTemplate = updatedTemplate;
+        }
+      });
+      _logMessage('Templates', '✅ Renamed template to: $newName',
+          isIncoming: false);
+    } catch (e) {
+      _logMessage('Templates', '❌ Error renaming template: $e',
+          isIncoming: false);
+    }
+  }
 
   void _showRenameDialog(ConnectionProfile profile) {
     final nameController = TextEditingController(text: profile.name);
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1551,7 +1539,7 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
         clientKeyPassword: profile.clientKeyPassword,
         verifyCertificate: profile.verifyCertificate,
       );
-      
+
       await _profileHelper.updateProfile(updatedProfile);
       final profiles = await _profileHelper.getAllProfiles();
       setState(() {
@@ -1560,9 +1548,11 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
           _currentProfile = updatedProfile;
         }
       });
-      _logMessage('Profiles', '✅ Renamed profile to: $newName', isIncoming: false);
+      _logMessage('Profiles', '✅ Renamed profile to: $newName',
+          isIncoming: false);
     } catch (e) {
-      _logMessage('Profiles', '❌ Error renaming profile: $e', isIncoming: false);
+      _logMessage('Profiles', '❌ Error renaming profile: $e',
+          isIncoming: false);
     }
   }
 
@@ -1572,7 +1562,8 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
       await _profileHelper.createDefaultProfiles();
       final profiles = await _profileHelper.getAllProfiles();
 
-       _logMessage('Profiles', '📊 Loaded ${profiles.length} profiles from DB', isIncoming: false);
+      _logMessage('Profiles', '📊 Loaded ${profiles.length} profiles from DB',
+          isIncoming: false);
 
       setState(() {
         _profiles = profiles;
@@ -1587,31 +1578,31 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
     try {
       final savedMessages = await _databaseHelper.getAllMessages();
       setState(() {
-        _messages.addAll(savedMessages.map((history) => Message(
-          id: history.id,
-          topic: history.topic,
-          payload: history.payload,
-          isIncoming: history.isIncoming,
-          timestamp: history.timestamp,
-          qos: history.qos,
-        )).toList());
+        _messages.addAll(savedMessages
+            .map((history) => Message(
+                  id: history.id,
+                  topic: history.topic,
+                  payload: history.payload,
+                  isIncoming: history.isIncoming,
+                  timestamp: history.timestamp,
+                  qos: history.qos,
+                ))
+            .toList());
       });
     } catch (e) {
       _logMessage('Database', 'Error loading history: $e', isIncoming: false);
     }
   }
 
-
-
-
   // LOG MESSAGE WITH MEMORY LIMIT
-  void _logMessage(String topic, String message, {bool isIncoming = true, int qos = 0}) async {
+  void _logMessage(String topic, String message,
+      {bool isIncoming = true, int qos = 0}) async {
     if (_messages.length >= _maxMessages) {
       setState(() {
         _messages = _messages.sublist(0, _maxMessages ~/ 2);
       });
     }
-    
+
     final newMessage = Message(
       topic: topic,
       payload: message,
@@ -1619,7 +1610,7 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
       timestamp: DateTime.now(),
       qos: qos,
     );
-    
+
     setState(() {
       _messages.insert(0, newMessage);
     });
@@ -1632,29 +1623,25 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
 
     // ========== ADD THIS AT THE END ==========
 
-  // Auto-scroll to show new message
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  });
+    // Auto-scroll to show new message
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
-
-
-
-
-
 
   // Enhanced clear messages that also clears database
   void _clearMessages() async {
     try {
       await _databaseHelper.clearAllMessages();
       setState(() => _messages.clear());
-      _logMessage('System', 'Message log and history cleared', isIncoming: false);
+      _logMessage('System', 'Message log and history cleared',
+          isIncoming: false);
     } catch (e) {
       _logMessage('System', 'Error clearing history: $e', isIncoming: false);
     }
@@ -1666,21 +1653,27 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
       _logMessage('System', 'Not connected to broker', isIncoming: false);
       return;
     }
-    
+
     final topic = pubTopicCtrl.text.trim();
     if (topic.isEmpty) {
-      _logMessage('System', 'Enter a topic to clear retained message', isIncoming: false);
+      _logMessage('System', 'Enter a topic to clear retained message',
+          isIncoming: false);
       return;
     }
 
     try {
       final builder = MqttClientPayloadBuilder()..addString('');
-      c.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!, retain: true);
-      
-      _logMessage('System', '🧹 Cleared retained message for: $topic', isIncoming: false);
-      _logMessage('System', '💡 New subscribers will no longer receive old retained messages', isIncoming: false);
+      c.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!,
+          retain: true);
+
+      _logMessage('System', '🧹 Cleared retained message for: $topic',
+          isIncoming: false);
+      _logMessage('System',
+          '💡 New subscribers will no longer receive old retained messages',
+          isIncoming: false);
     } catch (e) {
-      _logMessage('System', '❌ Error clearing retained message: $e', isIncoming: false);
+      _logMessage('System', '❌ Error clearing retained message: $e',
+          isIncoming: false);
     }
   }
 
@@ -1691,296 +1684,292 @@ Future<void> _renameTemplate(MessageTemplate template, String newName) async {
       _logMessage('System', 'Not connected to broker', isIncoming: false);
       return;
     }
-    
+
     final topic = willTopicCtrl.text.trim();
     if (topic.isEmpty) {
-      _logMessage('System', 'Enter a Will topic to clear retained Will message', isIncoming: false);
+      _logMessage('System', 'Enter a Will topic to clear retained Will message',
+          isIncoming: false);
       return;
     }
 
     try {
       final builder = MqttClientPayloadBuilder()..addString('');
-      c.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!, retain: true);
-      
-      _logMessage('System', '🧹 Cleared retained Will message for: $topic', isIncoming: false);
-      _logMessage('System', '💡 Will message has been cleared from broker', isIncoming: false);
+      c.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!,
+          retain: true);
+
+      _logMessage('System', '🧹 Cleared retained Will message for: $topic',
+          isIncoming: false);
+      _logMessage('System', '💡 Will message has been cleared from broker',
+          isIncoming: false);
     } catch (e) {
-      _logMessage('System', '❌ Error clearing retained Will message: $e', isIncoming: false);
+      _logMessage('System', '❌ Error clearing retained Will message: $e',
+          isIncoming: false);
     }
   }
 
   // Export database to Downloads
   void _exportDatabase() async {
     try {
-      _logMessage('System', '📤 Starting database export...', isIncoming: false);
-      
+      _logMessage('System', '📤 Starting database export...',
+          isIncoming: false);
+
       final databasesPath = await getDatabasesPath();
       final dbFile = File(path.join(databasesPath, 'mqtt_messages.db'));
-      
+
       if (await dbFile.exists()) {
         final downloadsDir = await getDownloadsDirectory();
-        final exportPath = path.join(downloadsDir!.path, 'mqtt_messages_${DateTime.now().millisecondsSinceEpoch}.db');
-        
+        final exportPath = path.join(downloadsDir!.path,
+            'mqtt_messages_${DateTime.now().millisecondsSinceEpoch}.db');
+
         await dbFile.copy(exportPath);
-        
-        _logMessage('System', '✅ Database exported successfully!', isIncoming: false);
+
+        _logMessage('System', '✅ Database exported successfully!',
+            isIncoming: false);
         _logMessage('System', '📁 Location: $exportPath', isIncoming: false);
-        _logMessage('System', '📊 File: ${path.basename(exportPath)}', isIncoming: false);
-        
+        _logMessage('System', '📊 File: ${path.basename(exportPath)}',
+            isIncoming: false);
+
         final messageCount = await _databaseHelper.getMessageCount();
-        _logMessage('System', '📈 Total messages in database: $messageCount', isIncoming: false);
+        _logMessage('System', '📈 Total messages in database: $messageCount',
+            isIncoming: false);
       } else {
         _logMessage('System', '❌ Database file not found', isIncoming: false);
-        _logMessage('System', '💡 Send some messages first, then try again', isIncoming: false);
+        _logMessage('System', '💡 Send some messages first, then try again',
+            isIncoming: false);
       }
     } catch (e) {
       _logMessage('System', '❌ Export error: $e', isIncoming: false);
     }
   }
 
+  Future<void> _exportProfilesAndTemplates() async {
+    try {
+      _logMessage('System', '📤 Starting export...', isIncoming: false);
 
+      // 1. Get ALL profiles directly from database
+      final allProfiles = await _profileHelper.getAllProfiles();
+      _logMessage('System', 'Found ${allProfiles.length} profiles to export',
+          isIncoming: false);
 
-Future<void> _exportProfilesAndTemplates() async {
-  try {
-    _logMessage('System', '📤 Starting export...', isIncoming: false);
-    
-    // 1. Get ALL profiles directly from database
-    final allProfiles = await _profileHelper.getAllProfiles();
-    _logMessage('System', 'Found ${allProfiles.length} profiles to export', isIncoming: false);
-    
-    // 2. Get ALL templates directly from database
-    final allTemplates = await _templateHelper.getAllTemplates();
-    _logMessage('System', 'Found ${allTemplates.length} templates to export', isIncoming: false);
-    
-    // 3. Create simple export data
-    final exportData = {
-      'profiles': allProfiles.map((p) => p.toMap()).toList(),
-      'templates': allTemplates.map((t) => t.toMap()).toList(),
-      'exportDate': DateTime.now().toIso8601String(),
-      'appVersion': 'MQTT Mobile App',
-    };
-    
-    final String jsonString = jsonEncode(exportData);
-    
-    // 4. Save to file
-    final downloadsDir = await getDownloadsDirectory();
-    if (downloadsDir == null) {
-      _logMessage('System', '❌ Cannot access downloads directory', isIncoming: false);
-      return;
+      // 2. Get ALL templates directly from database
+      final allTemplates = await _templateHelper.getAllTemplates();
+      _logMessage('System', 'Found ${allTemplates.length} templates to export',
+          isIncoming: false);
+
+      // 3. Create simple export data
+      final exportData = {
+        'profiles': allProfiles.map((p) => p.toMap()).toList(),
+        'templates': allTemplates.map((t) => t.toMap()).toList(),
+        'exportDate': DateTime.now().toIso8601String(),
+        'appVersion': 'MQTT Mobile App',
+      };
+
+      final String jsonString = jsonEncode(exportData);
+
+      // 4. Save to file
+      final downloadsDir = await getDownloadsDirectory();
+      if (downloadsDir == null) {
+        _logMessage('System', '❌ Cannot access downloads directory',
+            isIncoming: false);
+        return;
+      }
+
+      final fileName =
+          'mqtt_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final exportPath = path.join(downloadsDir.path, fileName);
+
+      await File(exportPath).writeAsString(jsonString);
+
+      // 5. Verify
+      final file = File(exportPath);
+      if (await file.exists()) {
+        _logMessage('System', '✅ Backup created successfully!',
+            isIncoming: false);
+        _logMessage('System', '📁 File: $fileName', isIncoming: false);
+        _logMessage('System', '👤 Profiles: ${allProfiles.length}',
+            isIncoming: false);
+        _logMessage('System', '📋 Templates: ${allTemplates.length}',
+            isIncoming: false);
+      }
+    } catch (e) {
+      _logMessage('System', '❌ Export error: $e', isIncoming: false);
     }
-    
-    final fileName = 'mqtt_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-    final exportPath = path.join(downloadsDir.path, fileName);
-    
-    await File(exportPath).writeAsString(jsonString);
-    
-    // 5. Verify
-    final file = File(exportPath);
-    if (await file.exists()) {
-      _logMessage('System', '✅ Backup created successfully!', isIncoming: false);
-      _logMessage('System', '📁 File: $fileName', isIncoming: false);
-      _logMessage('System', '👤 Profiles: ${allProfiles.length}', isIncoming: false);
-      _logMessage('System', '📋 Templates: ${allTemplates.length}', isIncoming: false);
-    }
-    
-  } catch (e) {
-    _logMessage('System', '❌ Export error: $e', isIncoming: false);
   }
-}
-
-
 
 // Helper function to format file size
-String _formatFileSize(int bytes) {
-  if (bytes < 1024) return '$bytes B';
-  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
-  return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
-}
-
-
-
-
-
-Future<void> _clearDatabaseBeforeImport() async {
-  try {
-    // Clear profiles
-    final profileDb = await _profileHelper.database;
-    await profileDb.delete('profiles');
-    
-    // Clear templates  
-    final templateDb = await _templateHelper.database;
-    await templateDb.delete('templates');
-    
-    _logMessage('Import', '🧹 Cleared existing data before import', isIncoming: false);
-  } catch (e) {
-    _logMessage('Import', '⚠️ Error clearing database: $e', isIncoming: false);
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
   }
-}
 
+  Future<void> _clearDatabaseBeforeImport() async {
+    try {
+      // Clear profiles
+      final profileDb = await _profileHelper.database;
+      await profileDb.delete('profiles');
 
+      // Clear templates
+      final templateDb = await _templateHelper.database;
+      await templateDb.delete('templates');
 
-
-
-Future<void> _importProfilesAndTemplates() async {
-  try {
-    _logMessage('System', '📥 Starting import...', isIncoming: false);
-    
-    // Pick file
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-      allowMultiple: false,
-    );
-    
-    if (result == null) return;
-    
-    final filePath = result.files.single.path!;
-    final content = await File(filePath).readAsString();
-    final data = jsonDecode(content);
-    
-    // Show confirmation
-    final profilesList = data['profiles'] as List;
-    final templatesList = data['templates'] as List;
-    
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Import Backup'),
-        content: Text('Import ${profilesList.length} profiles and ${templatesList.length} templates?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Import'),
-          ),
-        ],
-      ),
-    );
-    
-    if (confirm != true) return;
-    
-    // CLEAR DATABASE FIRST
-    _logMessage('System', '🧹 Clearing existing data...', isIncoming: false);
-    final profileDb = await _profileHelper.database;
-    await profileDb.delete('profiles');
-    final templateDb = await _templateHelper.database;
-    await templateDb.delete('templates');
-    
-    // IMPORT PROFILES
-    int profileCount = 0;
-    for (final profileData in profilesList) {
-      try {
-        final profile = ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
-        await _profileHelper.insertProfile(profile);
-        profileCount++;
-      } catch (e) {
-        _logMessage('System', '⚠️ Failed to import profile: $e', isIncoming: false);
-      }
+      _logMessage('Import', '🧹 Cleared existing data before import',
+          isIncoming: false);
+    } catch (e) {
+      _logMessage('Import', '⚠️ Error clearing database: $e',
+          isIncoming: false);
     }
-    
-    // IMPORT TEMPLATES
-    int templateCount = 0;
-    for (final templateData in templatesList) {
-      try {
-        final template = MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
-        await _templateHelper.insertTemplate(template);
-        templateCount++;
-      } catch (e) {
-        _logMessage('System', '⚠️ Failed to import template: $e', isIncoming: false);
-      }
-    }
-    
-    // REFRESH UI
-    await _initializeProfiles();
-    await _initializeTemplates();
-    
-    _logMessage('System', '✅ Import complete!', isIncoming: false);
-    _logMessage('System', '👤 Profiles imported: $profileCount', isIncoming: false);
-    _logMessage('System', '📋 Templates imported: $templateCount', isIncoming: false);
-    
-  } catch (e) {
-    _logMessage('System', '❌ Import error: $e', isIncoming: false);
   }
-}
 
+  Future<void> _importProfilesAndTemplates() async {
+    try {
+      _logMessage('System', '📥 Starting import...', isIncoming: false);
 
+      // Pick file
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
 
+      if (result == null) return;
+
+      final filePath = result.files.single.path!;
+      final content = await File(filePath).readAsString();
+      final data = jsonDecode(content);
+
+      // Show confirmation
+      final profilesList = data['profiles'] as List;
+      final templatesList = data['templates'] as List;
+
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Import Backup'),
+          content: Text(
+              'Import ${profilesList.length} profiles and ${templatesList.length} templates?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Import'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm != true) return;
+
+      // CLEAR DATABASE FIRST
+      _logMessage('System', '🧹 Clearing existing data...', isIncoming: false);
+      final profileDb = await _profileHelper.database;
+      await profileDb.delete('profiles');
+      final templateDb = await _templateHelper.database;
+      await templateDb.delete('templates');
+
+      // IMPORT PROFILES
+      int profileCount = 0;
+      for (final profileData in profilesList) {
+        try {
+          final profile =
+              ConnectionProfile.fromMap(Map<String, dynamic>.from(profileData));
+          await _profileHelper.insertProfile(profile);
+          profileCount++;
+        } catch (e) {
+          _logMessage('System', '⚠️ Failed to import profile: $e',
+              isIncoming: false);
+        }
+      }
+
+      // IMPORT TEMPLATES
+      int templateCount = 0;
+      for (final templateData in templatesList) {
+        try {
+          final template =
+              MessageTemplate.fromMap(Map<String, dynamic>.from(templateData));
+          await _templateHelper.insertTemplate(template);
+          templateCount++;
+        } catch (e) {
+          _logMessage('System', '⚠️ Failed to import template: $e',
+              isIncoming: false);
+        }
+      }
+
+      // REFRESH UI
+      await _initializeProfiles();
+      await _initializeTemplates();
+
+      _logMessage('System', '✅ Import complete!', isIncoming: false);
+      _logMessage('System', '👤 Profiles imported: $profileCount',
+          isIncoming: false);
+      _logMessage('System', '📋 Templates imported: $templateCount',
+          isIncoming: false);
+    } catch (e) {
+      _logMessage('System', '❌ Import error: $e', isIncoming: false);
+    }
+  }
 
 // Share Backup File
-Future<void> _shareBackupFile() async {
-  try {
-    _logMessage('System', '📤 Creating temporary backup for sharing...', isIncoming: false);
-    
-    final profilesJson = await _profileHelper.exportProfilesToJson();
-    final templatesJson = await _templateHelper.exportTemplatesToJson();
-    
-    final exportData = {
-      'profiles': jsonDecode(profilesJson),
-      'templates': jsonDecode(templatesJson),
-      'exportDate': DateTime.now().toIso8601String(),
-      'appVersion': 'MQTT Mobile App',
-    };
-    
-    final String jsonString = jsonEncode(exportData);
-    
-    // Create temporary file
-    final tempDir = await getTemporaryDirectory();
-    final fileName = 'mqtt_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-    final tempPath = path.join(tempDir.path, fileName);
-    
-    await File(tempPath).writeAsString(jsonString);
-    
-    _logMessage('System', '✅ Temporary backup created for sharing', isIncoming: false);
-    
-    // Use share_plus package for sharing
-    // Add to pubspec.yaml: share_plus: ^7.0.0
-    // import 'package:share_plus/share_plus.dart';
-    
-    // Share.shareXFiles([XFile(tempPath)], text: 'MQTT App Backup');
-    
-    // Or show message about manual sharing
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Share Backup'),
-        content: const Text(
-          'Backup file created at:\n\n'
-          'You can now share this file via:\n'
-          '• Email\n'
-          '• Bluetooth\n'
-          '• File sharing apps\n'
-          '• Cloud storage\n\n'
-          'The file contains all your MQTT connections.'
+  Future<void> _shareBackupFile() async {
+    try {
+      _logMessage('System', '📤 Creating temporary backup for sharing...',
+          isIncoming: false);
+
+      final profilesJson = await _profileHelper.exportProfilesToJson();
+      final templatesJson = await _templateHelper.exportTemplatesToJson();
+
+      final exportData = {
+        'profiles': jsonDecode(profilesJson),
+        'templates': jsonDecode(templatesJson),
+        'exportDate': DateTime.now().toIso8601String(),
+        'appVersion': 'MQTT Mobile App',
+      };
+
+      final String jsonString = jsonEncode(exportData);
+
+      // Create temporary file
+      final tempDir = await getTemporaryDirectory();
+      final fileName =
+          'mqtt_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final tempPath = path.join(tempDir.path, fileName);
+
+      await File(tempPath).writeAsString(jsonString);
+
+      _logMessage('System', '✅ Temporary backup created for sharing',
+          isIncoming: false);
+
+      // Use share_plus package for sharing
+      // Add to pubspec.yaml: share_plus: ^7.0.0
+      // import 'package:share_plus/share_plus.dart';
+
+      // Share.shareXFiles([XFile(tempPath)], text: 'MQTT App Backup');
+
+      // Or show message about manual sharing
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Share Backup'),
+          content: const Text('Backup file created at:\n\n'
+              'You can now share this file via:\n'
+              '• Email\n'
+              '• Bluetooth\n'
+              '• File sharing apps\n'
+              '• Cloud storage\n\n'
+              'The file contains all your MQTT connections.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-    
-  } catch (e) {
-    _logMessage('System', '❌ Share error: $e', isIncoming: false);
+      );
+    } catch (e) {
+      _logMessage('System', '❌ Share error: $e', isIncoming: false);
+    }
   }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // Toggle between live view and full history
   void _toggleHistoryView() async {
@@ -1996,18 +1985,23 @@ Future<void> _shareBackupFile() async {
         final allMessages = await _databaseHelper.getAllMessages();
         setState(() {
           _showHistory = true;
-          _messages = allMessages.map((history) => Message(
-            id: history.id,
-            topic: history.topic,
-            payload: history.payload,
-            isIncoming: history.isIncoming,
-            timestamp: history.timestamp,
-            qos: history.qos,
-          )).toList();
+          _messages = allMessages
+              .map((history) => Message(
+                    id: history.id,
+                    topic: history.topic,
+                    payload: history.payload,
+                    isIncoming: history.isIncoming,
+                    timestamp: history.timestamp,
+                    qos: history.qos,
+                  ))
+              .toList();
         });
-        _logMessage('System', 'Showing full message history (${allMessages.length} messages)', isIncoming: false);
+        _logMessage('System',
+            'Showing full message history (${allMessages.length} messages)',
+            isIncoming: false);
       } catch (e) {
-        _logMessage('System', 'Error loading full history: $e', isIncoming: false);
+        _logMessage('System', 'Error loading full history: $e',
+            isIncoming: false);
       }
     }
   }
@@ -2015,36 +2009,38 @@ Future<void> _shareBackupFile() async {
   // VALIDATE WILL CONFIGURATION
   bool _validateWillConfiguration() {
     if (!_enableWillMessage) return true;
-    
+
     final willTopic = willTopicCtrl.text.trim();
     final willPayload = willPayloadCtrl.text.trim();
-    
+
     if (willTopic.isEmpty) {
       _logMessage('Will', '❌ Will topic cannot be empty', isIncoming: false);
       return false;
     }
-    
+
     if (willPayload.isEmpty) {
       _logMessage('Will', '❌ Will payload cannot be empty', isIncoming: false);
       return false;
     }
-    
+
     if (willTopic.contains('#') || willTopic.contains('+')) {
-      _logMessage('Will', '❌ Will topic cannot contain wildcards (# or +)', isIncoming: false);
+      _logMessage('Will', '❌ Will topic cannot contain wildcards (# or +)',
+          isIncoming: false);
       return false;
     }
-    
+
     if (willTopic.length > 65535) {
       _logMessage('Will', '❌ Will topic too long', isIncoming: false);
       return false;
     }
-    
+
     final payloadBytes = utf8.encode(willPayload).length;
     if (payloadBytes > 268435456) {
-      _logMessage('Will', '❌ Will payload too large (max 256MB)', isIncoming: false);
+      _logMessage('Will', '❌ Will payload too large (max 256MB)',
+          isIncoming: false);
       return false;
     }
-    
+
     return true;
   }
 
@@ -2052,43 +2048,49 @@ Future<void> _shareBackupFile() async {
   void _applyBrokerSpecificSettings(MqttServerClient client, String url) {
     final uri = Uri.parse(url);
     final host = uri.host.toLowerCase();
-    
+
     if (host.contains('mosquitto')) {
-      _logMessage('Broker', '🎯 Applying Mosquitto-specific settings', isIncoming: false);
-      
+      _logMessage('Broker', '🎯 Applying Mosquitto-specific settings',
+          isIncoming: false);
+
       if (_enableWillMessage) {
         if (_cleanSession) {
-          _logMessage('Broker', '⚠️ Mosquitto: Forcing Clean Session = FALSE for Will messages', isIncoming: false);
+          _logMessage('Broker',
+              '⚠️ Mosquitto: Forcing Clean Session = FALSE for Will messages',
+              isIncoming: false);
         }
-        
+
         final currentKeepAlive = int.tryParse(keepAliveCtrl.text) ?? 60;
         if (currentKeepAlive > 30) {
           keepAliveCtrl.text = '30';
-          _logMessage('Broker', '📊 Adjusted keep-alive to 30 seconds for Mosquitto', isIncoming: false);
+          _logMessage(
+              'Broker', '📊 Adjusted keep-alive to 30 seconds for Mosquitto',
+              isIncoming: false);
         }
       }
-    }
-    
-    else if (host.contains('emqx')) {
-      _logMessage('Broker', '🎯 Applying EMQX-specific settings', isIncoming: false);
-      
+    } else if (host.contains('emqx')) {
+      _logMessage('Broker', '🎯 Applying EMQX-specific settings',
+          isIncoming: false);
+
       if (_enableWillMessage) {
         final currentKeepAlive = int.tryParse(keepAliveCtrl.text) ?? 60;
         if (currentKeepAlive > 45) {
           keepAliveCtrl.text = '45';
-          _logMessage('Broker', '📊 Adjusted keep-alive to 45 seconds for EMQX', isIncoming: false);
+          _logMessage('Broker', '📊 Adjusted keep-alive to 45 seconds for EMQX',
+              isIncoming: false);
         }
       }
-    }
-    
-    else if (host.contains('hivemq')) {
-      _logMessage('Broker', '🎯 Applying HiveMQ-specific settings', isIncoming: false);
-      
+    } else if (host.contains('hivemq')) {
+      _logMessage('Broker', '🎯 Applying HiveMQ-specific settings',
+          isIncoming: false);
+
       if (_enableWillMessage) {
         final currentKeepAlive = int.tryParse(keepAliveCtrl.text) ?? 60;
         if (currentKeepAlive > 25) {
           keepAliveCtrl.text = '25';
-          _logMessage('Broker', '📊 Adjusted keep-alive to 25 seconds for HiveMQ', isIncoming: false);
+          _logMessage(
+              'Broker', '📊 Adjusted keep-alive to 25 seconds for HiveMQ',
+              isIncoming: false);
         }
       }
     }
@@ -2096,14 +2098,12 @@ Future<void> _shareBackupFile() async {
 
   // FIXED CONNECT METHOD WITH SSL/TLS CERTIFICATE SUPPORT
   Future<void> _connect() async {
-
-
-    if (_connectionState == ConnectionState.connected || 
+    if (_connectionState == ConnectionState.connected ||
         _connectionState == ConnectionState.connecting) {
-      _logMessage('Connection', 'Already connected or connecting', isIncoming: false);
+      _logMessage('Connection', 'Already connected or connecting',
+          isIncoming: false);
       return;
     }
-
 
     _cancelAutoReconnect();
     setState(() => _connectionState = ConnectionState.connecting);
@@ -2116,7 +2116,8 @@ Future<void> _shareBackupFile() async {
       try {
         uri = Uri.parse(raw);
       } catch (e) {
-        _logMessage('Connection', '❌ Invalid URL format: $e', isIncoming: false);
+        _logMessage('Connection', '❌ Invalid URL format: $e',
+            isIncoming: false);
         setState(() => _connectionState = ConnectionState.error);
         return;
       }
@@ -2124,33 +2125,39 @@ Future<void> _shareBackupFile() async {
       final host = uri.host;
       int port = uri.port;
       final scheme = uri.scheme;
-      
+
       if (host.isEmpty) {
-        _logMessage('Connection', '❌ No host specified in URL', isIncoming: false);
+        _logMessage('Connection', '❌ No host specified in URL',
+            isIncoming: false);
         setState(() => _connectionState = ConnectionState.error);
         return;
       }
 
       final useWebSocket = scheme.startsWith('ws');
-      final useSSL = scheme.startsWith('ssl') || scheme.startsWith('wss') || _enableTLS;
-      
+      final useSSL =
+          scheme.startsWith('ssl') || scheme.startsWith('wss') || _enableTLS;
+
       if (port == 0) {
         if (useWebSocket) {
           port = useSSL ? 443 : 80;
-          _logMessage('Connection', 'Using default WebSocket port: $port', isIncoming: false);
+          _logMessage('Connection', 'Using default WebSocket port: $port',
+              isIncoming: false);
         } else {
           port = useSSL ? 8883 : 1883;
-          _logMessage('Connection', 'Using default MQTT port: $port', isIncoming: false);
+          _logMessage('Connection', 'Using default MQTT port: $port',
+              isIncoming: false);
         }
       }
-      
-      _logMessage('Connection', 
-          'Parsed: Host=$host, Port=$port, Scheme=$scheme, WebSocket=$useWebSocket, SSL=$useSSL', 
+
+      _logMessage('Connection',
+          'Parsed: Host=$host, Port=$port, Scheme=$scheme, WebSocket=$useWebSocket, SSL=$useSSL',
           isIncoming: false);
 
       // Validate Will configuration before connecting
       if (_enableWillMessage && !_validateWillConfiguration()) {
-        _logMessage('Connection', '❌ Invalid Will configuration, aborting connection', isIncoming: false);
+        _logMessage(
+            'Connection', '❌ Invalid Will configuration, aborting connection',
+            isIncoming: false);
         setState(() => _connectionState = ConnectionState.error);
         return;
       }
@@ -2158,30 +2165,35 @@ Future<void> _shareBackupFile() async {
       // Generate a unique client ID if not provided
       String clientId = clientIdCtrl.text.trim();
       if (clientId.isEmpty) {
-        clientId = 'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(6)}';
+        clientId =
+            'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(6)}';
         clientIdCtrl.text = clientId;
-        _logMessage('Connection', 'Generated Client ID: $clientId', isIncoming: false);
+        _logMessage('Connection', 'Generated Client ID: $clientId',
+            isIncoming: false);
       }
 
       // Create client with host and port
       final client = MqttServerClient.withPort(host, clientId, port);
-      
+
       client.logging(on: true);
-      
+
       _applyBrokerSpecificSettings(client, raw);
-      
+
       // Configure SSL/TLS with certificate support
       if (useSSL) {
         client.secure = true;
 
         // DEBUG: Log what we're doing
-  _logMessage('Security', 'Creating security context for $_certificateType', isIncoming: false);
-        
+        _logMessage(
+            'Security', 'Creating security context for $_certificateType',
+            isIncoming: false);
+
         client.securityContext = await _createSecurityContext();
 
-          // DEBUG: Check if context was created
-  _logMessage('Security', '✅ Security context created', isIncoming: false);
-        
+        // DEBUG: Check if context was created
+        _logMessage('Security', '✅ Security context created',
+            isIncoming: false);
+
         client.onBadCertificate = (dynamic cert) {
           if (cert is X509Certificate) {
             final certInfo = '''
@@ -2194,45 +2206,50 @@ Valid Until: ${cert.endValidity}
 ''';
             _logMessage('Security', certInfo, isIncoming: false);
 
-            
+            //             // TEMPORARY FIX FOR TESTING: Accept CA Signed despite CN mismatch
+            // if (_certificateType == CertificateType.caSigned) {
+            //   if (cert.issuer.contains('Test CA')) {  // Check if issued by your CA
+            //     _logMessage('Security',
+            //         '✅ CA Signed: Accepting certificate from our CA\n'
+            //         'Note: CN mismatch (${cert.subject} vs 192.168.43.26)\n'
+            //         'For production, regenerate certificate with correct CN',
+            //         isIncoming: false);
+            //     return true;
+            //   }
+            // }
 
-    //             // TEMPORARY FIX FOR TESTING: Accept CA Signed despite CN mismatch
-    // if (_certificateType == CertificateType.caSigned) {
-    //   if (cert.issuer.contains('Test CA')) {  // Check if issued by your CA
-    //     _logMessage('Security', 
-    //         '✅ CA Signed: Accepting certificate from our CA\n'
-    //         'Note: CN mismatch (${cert.subject} vs 192.168.43.26)\n'
-    //         'For production, regenerate certificate with correct CN',
-    //         isIncoming: false);
-    //     return true;
-    //   }
-    // }
-            
             // Handle different certificate types
             switch (_certificateType) {
               case CertificateType.selfSigned:
-                _logMessage('Security', '✅ Self-signed certificate accepted', isIncoming: false);
+                _logMessage('Security', '✅ Self-signed certificate accepted',
+                    isIncoming: false);
                 return true;
-                
+
               case CertificateType.none:
                 // Backward compatibility with old behavior
                 return _allowSelfSigned;
-                
+
               default:
                 if (!_verifyCertificate) {
-                  _logMessage('Security', '✅ Certificate verification disabled, accepting anyway', isIncoming: false);
+                  _logMessage('Security',
+                      '✅ Certificate verification disabled, accepting anyway',
+                      isIncoming: false);
                   return true;
                 }
-                _logMessage('Security', '❌ Certificate rejected due to verification failure', isIncoming: false);
+                _logMessage('Security',
+                    '❌ Certificate rejected due to verification failure',
+                    isIncoming: false);
                 return false;
             }
           }
           return false;
         };
-        
-        _logMessage('Security', '🔐 SSL/TLS Enabled with ${_getCertificateTypeName()}', isIncoming: false);
+
+        _logMessage(
+            'Security', '🔐 SSL/TLS Enabled with ${_getCertificateTypeName()}',
+            isIncoming: false);
       }
-      
+
       // Configure WebSocket
       if (useWebSocket) {
         client.useWebSocket = true;
@@ -2248,33 +2265,35 @@ Valid Until: ${cert.endValidity}
 
       _setupAutoReconnect();
 
-      var connMessage = MqttConnectMessage()
-          .withClientIdentifier(clientId);
+      var connMessage = MqttConnectMessage().withClientIdentifier(clientId);
 
       if (_enableWillMessage && willTopicCtrl.text.trim().isNotEmpty) {
         final willTopic = willTopicCtrl.text.trim();
         final willPayload = willPayloadCtrl.text.trim();
-        
+
         connMessage = connMessage
             .withWillTopic(willTopic)
             .withWillMessage(willPayload)
             .withWillQos(_willQos);
-        
+
         if (_willRetain) {
           connMessage = connMessage.withWillRetain();
         }
-        
-        _logMessage('Will Config', 
+
+        _logMessage(
+            'Will Config',
             '⚰️ Will Message Configured:\n'
-            '📝 Topic: $willTopic\n'
-            '📦 Payload: $willPayload\n'
-            '⚡ QoS: ${_willQos.index}\n'
-            '💾 Retain Flag: $_willRetain',
+                '📝 Topic: $willTopic\n'
+                '📦 Payload: $willPayload\n'
+                '⚡ QoS: ${_willQos.index}\n'
+                '💾 Retain Flag: $_willRetain',
             isIncoming: false);
-        
+
         if (host.contains('mosquitto')) {
           _cleanSession = false;
-          _logMessage('Broker', '⚠️ Mosquitto: Auto-setting Clean Session = FALSE for Will messages', isIncoming: false);
+          _logMessage('Broker',
+              '⚠️ Mosquitto: Auto-setting Clean Session = FALSE for Will messages',
+              isIncoming: false);
         }
       }
 
@@ -2282,94 +2301,119 @@ Valid Until: ${cert.endValidity}
         connMessage = connMessage.startClean();
         _logMessage('Connection', '🧹 Clean Session: TRUE', isIncoming: false);
       } else {
-        _logMessage('Connection', '📚 Clean Session: FALSE (Broker will remember subscriptions)', isIncoming: false);
+        _logMessage('Connection',
+            '📚 Clean Session: FALSE (Broker will remember subscriptions)',
+            isIncoming: false);
       }
 
       if (_enableAuth && usernameCtrl.text.trim().isNotEmpty) {
         final username = usernameCtrl.text.trim();
         final password = passwordCtrl.text.trim();
         connMessage = connMessage.authenticateAs(username, password);
-        _logMessage('Security', '🔐 Auth Enabled for user: $username', isIncoming: false);
+        _logMessage('Security', '🔐 Auth Enabled for user: $username',
+            isIncoming: false);
       }
 
       client.connectionMessage = connMessage;
 
       _logMessage('Connection', 'Attempting connection...', isIncoming: false);
-      
+
       final connResult = await client.connect();
-      
+
       if (connResult?.state == MqttConnectionState.connected) {
         _client = client;
         _setupMessageListener();
         _reconnectAttempts = 0;
-        _logMessage('Connection', '✅ Connected Successfully!', isIncoming: false);
-        
+        _logMessage('Connection', '✅ Connected Successfully!',
+            isIncoming: false);
+
         if (_enableWillMessage) {
-          _logMessage('Will Debug', 
+          _logMessage(
+              'Will Debug',
               'Will Configuration Connected:\n'
-              'Topic: ${willTopicCtrl.text.trim()}\n'
-              'Payload: ${willPayloadCtrl.text.trim()}\n'
-              'QoS: ${_willQos.index}\n'
-              'Retain: $_willRetain\n'
-              'Clean Session: $_cleanSession',
+                  'Topic: ${willTopicCtrl.text.trim()}\n'
+                  'Payload: ${willPayloadCtrl.text.trim()}\n'
+                  'QoS: ${_willQos.index}\n'
+                  'Retain: $_willRetain\n'
+                  'Clean Session: $_cleanSession',
               isIncoming: false);
         }
-        
+
         setState(() => _connectionState = ConnectionState.connected);
         _startUptimeTracker();
         _startKeepAlive();
         _startConnectionHealthCheck();
-        
+
         if (_enableWillMessage && willTopicCtrl.text.trim().isNotEmpty) {
           final willTopic = willTopicCtrl.text.trim();
           try {
             client.subscribe(willTopic, MqttQos.atLeastOnce);
-            _logMessage('Will', '👂 Auto-subscribed to Will topic: $willTopic', isIncoming: false);
-            
+            _logMessage('Will', '👂 Auto-subscribed to Will topic: $willTopic',
+                isIncoming: false);
+
             if (!_subscriptions.any((sub) => sub.topic == willTopic)) {
               setState(() {
-                _subscriptions.add(Subscription(topic: willTopic, qos: MqttQos.atLeastOnce));
+                _subscriptions.add(
+                    Subscription(topic: willTopic, qos: MqttQos.atLeastOnce));
               });
             }
           } catch (e) {
-            _logMessage('Will', '❌ Failed to subscribe to Will topic: $e', isIncoming: false);
+            _logMessage('Will', '❌ Failed to subscribe to Will topic: $e',
+                isIncoming: false);
           }
         }
       } else {
-        _logMessage('Connection', '❌ Connection Failed: ${connResult?.state}', isIncoming: false);
-        _logMessage('Connection', '💡 Check broker URL, port, and network connectivity', isIncoming: false);
+        _logMessage('Connection', '❌ Connection Failed: ${connResult?.state}',
+            isIncoming: false);
+        _logMessage(
+            'Connection', '💡 Check broker URL, port, and network connectivity',
+            isIncoming: false);
         setState(() => _connectionState = ConnectionState.error);
         client.disconnect();
-        
+
         if (useWebSocket) {
-          _logMessage('Connection', 
+          _logMessage(
+              'Connection',
               '💡 WebSocket Tips:\n'
-              '1. Try port 443 for wss:// or 80 for ws://\n'
-              '2. Ensure broker supports MQTT over WebSocket\n'
-              '3. Test with public broker: wss://test.mosquitto.org:8081', 
+                  '1. Try port 443 for wss:// or 80 for ws://\n'
+                  '2. Ensure broker supports MQTT over WebSocket\n'
+                  '3. Test with public broker: wss://test.mosquitto.org:8081',
               isIncoming: false);
         }
       }
-
     } on SocketException catch (e) {
-      _logMessage('Connection', '❌ Network error: ${e.message}', isIncoming: false);
-      _logMessage('Connection', '💡 Check internet connection and firewall settings', isIncoming: false);
+      _logMessage('Connection', '❌ Network error: ${e.message}',
+          isIncoming: false);
+      _logMessage(
+          'Connection', '💡 Check internet connection and firewall settings',
+          isIncoming: false);
       setState(() => _connectionState = ConnectionState.error);
     } on HandshakeException catch (e) {
-      _logMessage('Connection', '❌ SSL/TLS handshake failed: ${e.message}', isIncoming: false);
-      _logMessage('Connection', '💡 Check certificate configuration and try "Test Certificate" first', isIncoming: false);
+      _logMessage('Connection', '❌ SSL/TLS handshake failed: ${e.message}',
+          isIncoming: false);
+      _logMessage('Connection',
+          '💡 Check certificate configuration and try "Test Certificate" first',
+          isIncoming: false);
       setState(() => _connectionState = ConnectionState.error);
     } on TimeoutException {
-      _logMessage('Connection', '❌ Connection timeout (default timeout reached)', isIncoming: false);
-      _logMessage('Connection', '💡 Broker may be offline or URL/port is incorrect', isIncoming: false);
+      _logMessage(
+          'Connection', '❌ Connection timeout (default timeout reached)',
+          isIncoming: false);
+      _logMessage(
+          'Connection', '💡 Broker may be offline or URL/port is incorrect',
+          isIncoming: false);
       setState(() => _connectionState = ConnectionState.error);
     } on FormatException catch (e) {
       _logMessage('Connection', '❌ URL format error: $e', isIncoming: false);
-      _logMessage('Connection', '💡 Use format: protocol://host:port (e.g., tcp://test.mosquitto.org:1883)', isIncoming: false);
+      _logMessage('Connection',
+          '💡 Use format: protocol://host:port (e.g., tcp://test.mosquitto.org:1883)',
+          isIncoming: false);
       setState(() => _connectionState = ConnectionState.error);
     } catch (e) {
       _logMessage('Connection', '❌ Unexpected error: $e', isIncoming: false);
-      _logMessage('Connection', '💡 Try a different broker or check app permissions', isIncoming: false);
+      _logMessage(
+          'Connection', '💡 Try a different broker or check app permissions',
+          isIncoming: false);
       setState(() => _connectionState = ConnectionState.error);
     }
   }
@@ -2379,14 +2423,17 @@ Valid Until: ${cert.endValidity}
     if (_client == null || _connectionState != ConnectionState.connected) {
       return;
     }
-    
+
     if (_subscriptions.isEmpty) {
-      _logMessage('System', 'ℹ️ No active subscriptions to restore', isIncoming: false);
+      _logMessage('System', 'ℹ️ No active subscriptions to restore',
+          isIncoming: false);
       return;
     }
-    
-    _logMessage('System', '🔄 Restoring ${_subscriptions.length} subscription(s) in 1 second...', isIncoming: false);
-    
+
+    _logMessage('System',
+        '🔄 Restoring ${_subscriptions.length} subscription(s) in 1 second...',
+        isIncoming: false);
+
     Timer(const Duration(seconds: 1), () {
       _resubscribeToAllTopics();
     });
@@ -2397,56 +2444,67 @@ Valid Until: ${cert.endValidity}
     if (_client == null || _connectionState != ConnectionState.connected) {
       return;
     }
-    
+
     if (_subscriptions.isEmpty) {
-      _logMessage('System', 'ℹ️ No active subscriptions to restore', isIncoming: false);
+      _logMessage('System', 'ℹ️ No active subscriptions to restore',
+          isIncoming: false);
       return;
     }
-    
-    _logMessage('System', '🔄 Restoring ${_subscriptions.length} subscription(s)', isIncoming: false);
-    
+
+    _logMessage(
+        'System', '🔄 Restoring ${_subscriptions.length} subscription(s)',
+        isIncoming: false);
+
     for (final subscription in _subscriptions) {
       try {
         _client!.subscribe(subscription.topic, subscription.qos);
-        _logMessage('Subscription', 
-            '✅ Re-subscribed: ${subscription.topic} (QoS ${subscription.qos.index})', 
+        _logMessage('Subscription',
+            '✅ Re-subscribed: ${subscription.topic} (QoS ${subscription.qos.index})',
             isIncoming: false);
       } catch (e) {
-        _logMessage('Subscription', 
-            '⚠️ Failed to re-subscribe to ${subscription.topic}: $e', 
+        _logMessage('Subscription',
+            '⚠️ Failed to re-subscribe to ${subscription.topic}: $e',
             isIncoming: false);
       }
     }
   }
 
   void _onConnected() {
-    _logMessage('Connection', '✅ onConnected callback triggered', isIncoming: false);
-    
+    _logMessage('Connection', '✅ onConnected callback triggered',
+        isIncoming: false);
+
     setState(() {
       _connectionState = ConnectionState.connected;
       _reconnectAttempts = 0;
       _missedPings = 0;
     });
-    
+
     _startUptimeTracker();
     _startKeepAlive();
     _startConnectionHealthCheck();
-    
-    if (_enableWillMessage && willTopicCtrl.text.trim().isNotEmpty && _client != null) {
+
+    if (_enableWillMessage &&
+        willTopicCtrl.text.trim().isNotEmpty &&
+        _client != null) {
       final willTopic = willTopicCtrl.text.trim();
       try {
         if (!_subscriptions.any((sub) => sub.topic == willTopic)) {
           _client!.subscribe(willTopic, MqttQos.atLeastOnce);
           setState(() {
-            _subscriptions.add(Subscription(topic: willTopic, qos: MqttQos.atLeastOnce));
+            _subscriptions
+                .add(Subscription(topic: willTopic, qos: MqttQos.atLeastOnce));
           });
-          _logMessage('Will', '👂 Connected: Subscribed to own Will topic: $willTopic', isIncoming: false);
+          _logMessage(
+              'Will', '👂 Connected: Subscribed to own Will topic: $willTopic',
+              isIncoming: false);
         }
       } catch (e) {
-        _logMessage('Will', '❌ Failed to subscribe to Will topic on connected: $e', isIncoming: false);
+        _logMessage(
+            'Will', '❌ Failed to subscribe to Will topic on connected: $e',
+            isIncoming: false);
       }
     }
-    
+
     if (_shouldRestoreSubscriptions) {
       _shouldRestoreSubscriptions = false;
       _restoreSubscriptionsWithDelay();
@@ -2454,7 +2512,8 @@ Valid Until: ${cert.endValidity}
   }
 
   void _onDisconnected() {
-    _logMessage('Connection', '🔌 onDisconnected callback triggered', isIncoming: false);
+    _logMessage('Connection', '🔌 onDisconnected callback triggered',
+        isIncoming: false);
     setState(() => _connectionState = ConnectionState.disconnected);
     _stopUptimeTracker();
     _stopKeepAlive();
@@ -2466,26 +2525,30 @@ Valid Until: ${cert.endValidity}
 
   void _onPong() {
     _missedPings = 0;
-    _logMessage('Connection', '💓 Ping response received - connection healthy', isIncoming: false);
+    _logMessage('Connection', '💓 Ping response received - connection healthy',
+        isIncoming: false);
   }
 
   void _setupMessageListener() {
     _updatesSub?.cancel();
-    _updatesSub = _client?.updates?.listen((List<MqttReceivedMessage<MqttMessage?>>? events) {
+    _updatesSub = _client?.updates?.listen(
+        (List<MqttReceivedMessage<MqttMessage?>>? events) {
       if (events == null) return;
-      
+
       for (final event in events) {
         try {
           final topic = event.topic;
           final message = event.payload;
-          
+
           if (message is MqttPublishMessage) {
-            final payload = MqttPublishPayload.bytesToStringAsString(message.payload.message);
+            final payload = MqttPublishPayload.bytesToStringAsString(
+                message.payload.message);
             final qosIndex = message.payload.header?.qos.index ?? 0;
             _logMessage(topic, 'RX: $payload', isIncoming: true, qos: qosIndex);
           }
         } catch (e) {
-          _logMessage('Error', 'Failed to process message: $e', isIncoming: true);
+          _logMessage('Error', 'Failed to process message: $e',
+              isIncoming: true);
         }
       }
     }, onError: (error) {
@@ -2497,9 +2560,9 @@ Valid Until: ${cert.endValidity}
   void _loadProfile(ConnectionProfile profile) {
     setState(() {
       _currentProfile = profile;
-      
+
       urlCtrl.text = profile.brokerUrl;
-      clientIdCtrl.text = profile.clientId.isEmpty 
+      clientIdCtrl.text = profile.clientId.isEmpty
           ? 'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(4)}'
           : profile.clientId;
       usernameCtrl.text = profile.username;
@@ -2514,7 +2577,7 @@ Valid Until: ${cert.endValidity}
       _willQos = MqttQos.values[profile.willQos.clamp(0, 2)];
       _willRetain = profile.willRetain;
       _retainMessage = profile.willRetain;
-      
+
       // Load certificate settings
       _certificateType = profile.certificateType;
       _caCertificatePath = profile.caCertificatePath;
@@ -2522,135 +2585,148 @@ Valid Until: ${cert.endValidity}
       _clientPrivateKeyPath = profile.clientPrivateKeyPath;
       _clientKeyPassword = profile.clientKeyPassword;
       _verifyCertificate = profile.verifyCertificate;
-      
+
       // Enable TLS if using SSL/WSS URLs
-      _enableTLS = profile.brokerUrl.startsWith('ssl://') || 
-                   profile.brokerUrl.startsWith('wss://') || 
-                   profile.certificateType != CertificateType.none;
-      
+      _enableTLS = profile.brokerUrl.startsWith('ssl://') ||
+          profile.brokerUrl.startsWith('wss://') ||
+          profile.certificateType != CertificateType.none;
+
       // Load key password if exists
       if (_clientKeyPassword != null) {
         keyPasswordCtrl.text = _clientKeyPassword!;
       }
     });
-    
-    _logMessage('Profiles', '✅ Loaded profile: ${profile.name}', isIncoming: false);
+
+    _logMessage('Profiles', '✅ Loaded profile: ${profile.name}',
+        isIncoming: false);
   }
 
+  Future<void> _saveCurrentAsProfile() async {
+    _logMessage('Profiles', '=== START SAVE PROFILE ===', isIncoming: false);
 
+    String suggestName() {
+      final url = urlCtrl.text.trim();
+      _logMessage('Profiles', 'URL for name suggestion: $url',
+          isIncoming: false);
 
+      if (url.contains('mosquitto')) return 'Mosquitto Server';
+      if (url.contains('localhost')) return 'Local Server';
+      if (url.contains('hivemq')) return 'HiveMQ';
+      if (url.contains('emqx')) return 'EMQX';
 
-Future<void> _saveCurrentAsProfile() async {
-  _logMessage('Profiles', '=== START SAVE PROFILE ===', isIncoming: false);
-  
-  
-  String suggestName() {
-    final url = urlCtrl.text.trim();
-    _logMessage('Profiles', 'URL for name suggestion: $url', isIncoming: false);
-    
-    if (url.contains('mosquitto')) return 'Mosquitto Server';
-    if (url.contains('localhost')) return 'Local Server';
-    if (url.contains('hivemq')) return 'HiveMQ';
-    if (url.contains('emqx')) return 'EMQX';
-    
-    final uri = Uri.tryParse(url);
-    if (uri != null && uri.host.isNotEmpty) {
-      return '${uri.host} Server';
+      final uri = Uri.tryParse(url);
+      if (uri != null && uri.host.isNotEmpty) {
+        return '${uri.host} Server';
+      }
+
+      return 'Connection ${_profiles.length + 1}';
     }
-    
-    return 'Connection ${_profiles.length + 1}';
+
+    String brokerUrl = urlCtrl.text.trim();
+    _logMessage('Profiles', 'Original URL: $brokerUrl', isIncoming: false);
+
+    if (_enableTLS) {
+      if (brokerUrl.startsWith('tcp://')) {
+        brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
+      } else if (brokerUrl.startsWith('ws://')) {
+        brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
+      } else if (!brokerUrl.startsWith('ssl://') &&
+          !brokerUrl.startsWith('wss://')) {
+        brokerUrl = 'ssl://$brokerUrl';
+      }
+    }
+
+    _logMessage('Profiles', 'Final broker URL: $brokerUrl', isIncoming: false);
+
+    // Generate a unique ID
+    final String profileId = DateTime.now().millisecondsSinceEpoch.toString();
+    final String profileName = suggestName();
+
+    _logMessage(
+        'Profiles', 'Creating profile with ID: $profileId, Name: $profileName',
+        isIncoming: false);
+
+    final profile = ConnectionProfile(
+      id: profileId,
+      name: profileName,
+      brokerUrl: brokerUrl,
+      clientId: clientIdCtrl.text.trim(),
+      username: usernameCtrl.text.trim(),
+      password: passwordCtrl.text.trim(),
+      enableAuth: _enableAuth,
+      cleanSession: _cleanSession,
+      keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
+      defaultQos: _qos.index,
+      enableWill: _enableWillMessage,
+      willTopic: willTopicCtrl.text.trim(),
+      willPayload: willPayloadCtrl.text.trim(),
+      willQos: _willQos.index,
+      willRetain: _willRetain,
+      createdAt: DateTime.now(),
+      certificateType: _certificateType,
+      caCertificatePath: _caCertificatePath,
+      clientCertificatePath: _clientCertificatePath,
+      clientPrivateKeyPath: _clientPrivateKeyPath,
+      clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty
+          ? keyPasswordCtrl.text.trim()
+          : null,
+      verifyCertificate: _verifyCertificate,
+    );
+
+    _logMessage('Profiles', 'Profile object created successfully',
+        isIncoming: false);
+
+    try {
+      _logMessage('Profiles', 'Attempting to insert into database...',
+          isIncoming: false);
+
+      // Get database count BEFORE insert
+      final profilesBefore = await _profileHelper.getAllProfiles();
+      _logMessage(
+          'Profiles', 'Profiles in DB before insert: ${profilesBefore.length}',
+          isIncoming: false);
+
+      final result = await _profileHelper.insertProfile(profile);
+      _logMessage('Profiles', 'Database insert returned: $result (1 = success)',
+          isIncoming: false);
+
+      // Get database count AFTER insert
+      final profilesAfter = await _profileHelper.getAllProfiles();
+      _logMessage(
+          'Profiles', 'Profiles in DB after insert: ${profilesAfter.length}',
+          isIncoming: false);
+
+      // Log all profiles
+      for (int i = 0; i < profilesAfter.length; i++) {
+        _logMessage('Profiles',
+            '  Profile $i: ${profilesAfter[i].name} (ID: ${profilesAfter[i].id})',
+            isIncoming: false);
+      }
+
+      setState(() {
+        _profiles = profilesAfter;
+        _currentProfile = profile;
+      });
+
+      _logMessage('Profiles', 'UI updated with ${_profiles.length} profiles',
+          isIncoming: false);
+      _logMessage('Profiles', '✅ Profile saved: ${profile.name}',
+          isIncoming: false);
+    } catch (e) {
+      _logMessage('Profiles', '❌ CRITICAL ERROR saving profile: $e',
+          isIncoming: false);
+      if (e is DatabaseException) {
+        _logMessage('Profiles', 'Database error details: ${e.toString()}',
+            isIncoming: false);
+      }
+    }
+
+    _logMessage('Profiles', '=== END SAVE PROFILE ===', isIncoming: false);
   }
-
-  String brokerUrl = urlCtrl.text.trim();
-  _logMessage('Profiles', 'Original URL: $brokerUrl', isIncoming: false);
-  
-  if (_enableTLS) {
-    if (brokerUrl.startsWith('tcp://')) {
-      brokerUrl = brokerUrl.replaceFirst('tcp://', 'ssl://');
-    } else if (brokerUrl.startsWith('ws://')) {
-      brokerUrl = brokerUrl.replaceFirst('ws://', 'wss://');
-    } else if (!brokerUrl.startsWith('ssl://') && !brokerUrl.startsWith('wss://')) {
-      brokerUrl = 'ssl://$brokerUrl';
-    }
-  }
-  
-  _logMessage('Profiles', 'Final broker URL: $brokerUrl', isIncoming: false);
-  
-  // Generate a unique ID
-  final String profileId = DateTime.now().millisecondsSinceEpoch.toString();
-  final String profileName = suggestName();
-  
-  _logMessage('Profiles', 'Creating profile with ID: $profileId, Name: $profileName', isIncoming: false);
-
-  final profile = ConnectionProfile(
-    id: profileId,
-    name: profileName,
-    brokerUrl: brokerUrl,
-    clientId: clientIdCtrl.text.trim(),
-    username: usernameCtrl.text.trim(),
-    password: passwordCtrl.text.trim(),
-    enableAuth: _enableAuth,
-    cleanSession: _cleanSession,
-    keepAlive: int.tryParse(keepAliveCtrl.text) ?? 60,
-    defaultQos: _qos.index,
-    enableWill: _enableWillMessage,
-    willTopic: willTopicCtrl.text.trim(),
-    willPayload: willPayloadCtrl.text.trim(),
-    willQos: _willQos.index,
-    willRetain: _willRetain,
-    createdAt: DateTime.now(),
-    certificateType: _certificateType,
-    caCertificatePath: _caCertificatePath,
-    clientCertificatePath: _clientCertificatePath,
-    clientPrivateKeyPath: _clientPrivateKeyPath,
-    clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
-    verifyCertificate: _verifyCertificate,
-  );
-  
-  _logMessage('Profiles', 'Profile object created successfully', isIncoming: false);
-  
-  try {
-    _logMessage('Profiles', 'Attempting to insert into database...', isIncoming: false);
-    
-    // Get database count BEFORE insert
-    final profilesBefore = await _profileHelper.getAllProfiles();
-    _logMessage('Profiles', 'Profiles in DB before insert: ${profilesBefore.length}', isIncoming: false);
-    
-    final result = await _profileHelper.insertProfile(profile);
-    _logMessage('Profiles', 'Database insert returned: $result (1 = success)', isIncoming: false);
-    
-    // Get database count AFTER insert
-    final profilesAfter = await _profileHelper.getAllProfiles();
-    _logMessage('Profiles', 'Profiles in DB after insert: ${profilesAfter.length}', isIncoming: false);
-    
-    // Log all profiles
-    for (int i = 0; i < profilesAfter.length; i++) {
-      _logMessage('Profiles', '  Profile $i: ${profilesAfter[i].name} (ID: ${profilesAfter[i].id})', isIncoming: false);
-    }
-    
-    setState(() {
-      _profiles = profilesAfter;
-      _currentProfile = profile;
-    });
-    
-    _logMessage('Profiles', 'UI updated with ${_profiles.length} profiles', isIncoming: false);
-    _logMessage('Profiles', '✅ Profile saved: ${profile.name}', isIncoming: false);
-    
-  } catch (e) {
-    _logMessage('Profiles', '❌ CRITICAL ERROR saving profile: $e', isIncoming: false);
-    if (e is DatabaseException) {
-      _logMessage('Profiles', 'Database error details: ${e.toString()}', isIncoming: false);
-    }
-  }
-  
-  _logMessage('Profiles', '=== END SAVE PROFILE ===', isIncoming: false);
-}
-
-
 
   Future<void> _updateCurrentProfile() async {
     if (_currentProfile == null) return;
-    
+
     try {
       final updatedProfile = ConnectionProfile(
         id: _currentProfile!.id,
@@ -2674,142 +2750,137 @@ Future<void> _saveCurrentAsProfile() async {
         caCertificatePath: _caCertificatePath,
         clientCertificatePath: _clientCertificatePath,
         clientPrivateKeyPath: _clientPrivateKeyPath,
-        clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty ? keyPasswordCtrl.text.trim() : null,
+        clientKeyPassword: keyPasswordCtrl.text.trim().isNotEmpty
+            ? keyPasswordCtrl.text.trim()
+            : null,
         verifyCertificate: _verifyCertificate,
       );
-      
+
       await _profileHelper.updateProfile(updatedProfile);
       final profiles = await _profileHelper.getAllProfiles();
       setState(() {
         _profiles = profiles;
         _currentProfile = updatedProfile;
       });
-      _logMessage('Profiles', '✅ Profile updated: ${updatedProfile.name}', isIncoming: false);
+      _logMessage('Profiles', '✅ Profile updated: ${updatedProfile.name}',
+          isIncoming: false);
     } catch (e) {
-      _logMessage('Profiles', '❌ Error updating profile: $e', isIncoming: false);
+      _logMessage('Profiles', '❌ Error updating profile: $e',
+          isIncoming: false);
     }
   }
 
- 
+  Future<void> _deleteProfile(ConnectionProfile profile) async {
+    try {
+      await _profileHelper.deleteProfile(profile.id);
+      final profiles = await _profileHelper.getAllProfiles();
 
+      // Check if we're deleting the currently loaded profile
+      final bool isCurrentProfile = _currentProfile?.id == profile.id;
 
-Future<void> _deleteProfile(ConnectionProfile profile) async {
-  try {
-    await _profileHelper.deleteProfile(profile.id);
-    final profiles = await _profileHelper.getAllProfiles();
-    
-    // Check if we're deleting the currently loaded profile
-    final bool isCurrentProfile = _currentProfile?.id == profile.id;
-    
-    setState(() {
-      _profiles = profiles;
-      if (isCurrentProfile) {
-        _currentProfile = null;
-        // Clear UI fields or load another profile
-        _clearProfileFields();
-      }
-    });
-    
-    _logMessage('Profiles', '🗑️ Deleted profile: ${profile.name}', isIncoming: false);
-    
-    // If we deleted the current profile, load the first available one
-    if (isCurrentProfile && profiles.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _loadProfile(profiles.first);
+      setState(() {
+        _profiles = profiles;
+        if (isCurrentProfile) {
+          _currentProfile = null;
+          // Clear UI fields or load another profile
+          _clearProfileFields();
+        }
       });
+
+      _logMessage('Profiles', '🗑️ Deleted profile: ${profile.name}',
+          isIncoming: false);
+
+      // If we deleted the current profile, load the first available one
+      if (isCurrentProfile && profiles.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _loadProfile(profiles.first);
+        });
+      }
+    } catch (e) {
+      _logMessage('Profiles', '❌ Error deleting profile: $e',
+          isIncoming: false);
     }
-    
-  } catch (e) {
-    _logMessage('Profiles', '❌ Error deleting profile: $e', isIncoming: false);
   }
-}
 
 // Add this helper method to clear profile fields
-void _clearProfileFields() {
-  setState(() {
-    urlCtrl.text = 'tcp://test.mosquitto.org:1883'; // Default URL
-    clientIdCtrl.text = 'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(4)}';
-    usernameCtrl.text = '';
-    passwordCtrl.text = '';
-    _enableAuth = false;
-    _cleanSession = true;
-    keepAliveCtrl.text = '60';
-    _qos = MqttQos.atMostOnce;
-    _enableWillMessage = false;
-    willTopicCtrl.text = 'device/status';
-    willPayloadCtrl.text = 'offline';
-    _willQos = MqttQos.atMostOnce;
-    _willRetain = false;
-    _retainMessage = false;
-    _enableTLS = false;
-    _certificateType = CertificateType.none;
-    _clearCertificateFiles();
-  });
-  _logMessage('Profiles', '🧹 Cleared profile fields', isIncoming: false);
-}
-
-
-
-
-
-
-Future<void> _deleteAllProfiles() async {
-  try {
-    final db = await _profileHelper.database;
-    await db.delete('profiles');
-    final profiles = await _profileHelper.getAllProfiles();
+  void _clearProfileFields() {
     setState(() {
-      _profiles = profiles;
-      _currentProfile = null;
-      _clearProfileFields(); // Clear UI fields
+      urlCtrl.text = 'tcp://test.mosquitto.org:1883'; // Default URL
+      clientIdCtrl.text =
+          'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(4)}';
+      usernameCtrl.text = '';
+      passwordCtrl.text = '';
+      _enableAuth = false;
+      _cleanSession = true;
+      keepAliveCtrl.text = '60';
+      _qos = MqttQos.atMostOnce;
+      _enableWillMessage = false;
+      willTopicCtrl.text = 'device/status';
+      willPayloadCtrl.text = 'offline';
+      _willQos = MqttQos.atMostOnce;
+      _willRetain = false;
+      _retainMessage = false;
+      _enableTLS = false;
+      _certificateType = CertificateType.none;
+      _clearCertificateFiles();
     });
-    _logMessage('Profiles', '🧹 All profiles deleted', isIncoming: false);
-    
-    // Recreate default profile
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeProfiles();
-    });
-    
-  } catch (e) {
-    _logMessage('Profiles', '❌ Error deleting all profiles: $e', isIncoming: false);
+    _logMessage('Profiles', '🧹 Cleared profile fields', isIncoming: false);
   }
-}
 
+  Future<void> _deleteAllProfiles() async {
+    try {
+      final db = await _profileHelper.database;
+      await db.delete('profiles');
+      final profiles = await _profileHelper.getAllProfiles();
+      setState(() {
+        _profiles = profiles;
+        _currentProfile = null;
+        _clearProfileFields(); // Clear UI fields
+      });
+      _logMessage('Profiles', '🧹 All profiles deleted', isIncoming: false);
+
+      // Recreate default profile
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeProfiles();
+      });
+    } catch (e) {
+      _logMessage('Profiles', '❌ Error deleting all profiles: $e',
+          isIncoming: false);
+    }
+  }
 
   //new check
 
-
-
   void _checkUploadedFile(String? path) {
-  if (path != null) {
-    _logMessage('Debug', 'Checking uploaded file: $path', isIncoming: false);
-    final file = File(path);
-    if (file.existsSync()) {
-      final size = file.lengthSync();
-      final content = file.readAsStringSync();
-      _logMessage('Debug', '✅ File exists, Size: $size bytes', isIncoming: false);
-      _logMessage('Debug', 'First 100 chars: ${content.substring(0, min(100, content.length))}...', isIncoming: false);
-    } else {
-      _logMessage('Debug', '❌ File does not exist!', isIncoming: false);
+    if (path != null) {
+      _logMessage('Debug', 'Checking uploaded file: $path', isIncoming: false);
+      final file = File(path);
+      if (file.existsSync()) {
+        final size = file.lengthSync();
+        final content = file.readAsStringSync();
+        _logMessage('Debug', '✅ File exists, Size: $size bytes',
+            isIncoming: false);
+        _logMessage('Debug',
+            'First 100 chars: ${content.substring(0, min(100, content.length))}...',
+            isIncoming: false);
+      } else {
+        _logMessage('Debug', '❌ File does not exist!', isIncoming: false);
+      }
     }
   }
-}
-
-
-
-
 
   void _disconnect() {
     _cancelAutoReconnect();
     _connectionHealthTimer?.cancel();
     _stopUptimeTracker();
     _stopKeepAlive();
-    
+
     _client?.disconnect();
-    
+
     setState(() => _connectionState = ConnectionState.disconnected);
     _logMessage('Connection', 'Disconnected properly', isIncoming: false);
-    _logMessage('System', '📋 Subscriptions preserved for next connection', isIncoming: false);
+    _logMessage('System', '📋 Subscriptions preserved for next connection',
+        isIncoming: false);
   }
 
   // SUBSCRIBE METHOD
@@ -2819,17 +2890,20 @@ Future<void> _deleteAllProfiles() async {
       _logMessage('Subscription', 'Not connected to broker', isIncoming: false);
       return;
     }
-    
+
     final topic = subTopicCtrl.text.trim();
     if (topic.isEmpty) return;
 
     if (!_isValidWildcardTopic(topic)) {
-      _logMessage('Subscription', '❌ Invalid wildcard topic. Use + for single level and # for multi-level', isIncoming: false);
+      _logMessage('Subscription',
+          '❌ Invalid wildcard topic. Use + for single level and # for multi-level',
+          isIncoming: false);
       return;
     }
 
     if (_subscriptions.any((sub) => sub.topic == topic)) {
-      _logMessage('Subscription', 'Already subscribed to: $topic', isIncoming: false);
+      _logMessage('Subscription', 'Already subscribed to: $topic',
+          isIncoming: false);
       return;
     }
 
@@ -2838,13 +2912,16 @@ Future<void> _deleteAllProfiles() async {
       setState(() {
         _subscriptions.add(Subscription(topic: topic, qos: _qos));
       });
-      
+
       if (topic.contains('+') || topic.contains('#')) {
-        _logMessage('Subscription', '🎯 Wildcard subscription added: $topic (QoS ${_qos.index})', isIncoming: false);
+        _logMessage('Subscription',
+            '🎯 Wildcard subscription added: $topic (QoS ${_qos.index})',
+            isIncoming: false);
       } else {
-        _logMessage('Subscription', 'Subscribed to: $topic (QoS ${_qos.index})', isIncoming: false);
+        _logMessage('Subscription', 'Subscribed to: $topic (QoS ${_qos.index})',
+            isIncoming: false);
       }
-      
+
       subTopicCtrl.clear();
     } catch (e) {
       _logMessage('Subscription', 'Subscribe error: $e', isIncoming: false);
@@ -2854,13 +2931,14 @@ Future<void> _deleteAllProfiles() async {
   void _unsubscribe(String topic) {
     final c = _client;
     if (_connectionState != ConnectionState.connected || c == null) return;
-    
+
     try {
       c.unsubscribe(topic);
       setState(() {
         _subscriptions.removeWhere((sub) => sub.topic == topic);
       });
-      _logMessage('Subscription', 'Unsubscribed from: $topic', isIncoming: false);
+      _logMessage('Subscription', 'Unsubscribed from: $topic',
+          isIncoming: false);
     } catch (e) {
       _logMessage('Subscription', 'Unsubscribe error: $e', isIncoming: false);
     }
@@ -2872,18 +2950,19 @@ Future<void> _deleteAllProfiles() async {
       _logMessage('Publish', 'Not connected to broker', isIncoming: false);
       return;
     }
-    
+
     final topic = pubTopicCtrl.text.trim();
     final payload = payloadCtrl.text.trim();
-    
+
     if (topic.isEmpty || payload.isEmpty) return;
 
     try {
       final builder = MqttClientPayloadBuilder()..addString(payload);
       c.publishMessage(topic, _qos, builder.payload!, retain: _retainMessage);
-      
-      _logMessage(topic, 'TX: $payload ${_retainMessage ? "🔒 [RETAINED]" : ""}', 
-                  isIncoming: false, qos: _qos.index);
+
+      _logMessage(
+          topic, 'TX: $payload ${_retainMessage ? "🔒 [RETAINED]" : ""}',
+          isIncoming: false, qos: _qos.index);
     } catch (e) {
       _logMessage('Publish', 'Publish error: $e', isIncoming: false);
     }
@@ -2893,7 +2972,7 @@ Future<void> _deleteAllProfiles() async {
   Widget _buildConnectionStats() {
     final messagesReceived = _messages.where((m) => m.isIncoming).length;
     final messagesSent = _messages.where((m) => !m.isIncoming).length;
-    
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -2913,10 +2992,15 @@ Future<void> _deleteAllProfiles() async {
               ],
             ),
             const SizedBox(height: 8),
-            Text('📨 Messages Received: $messagesReceived', style: const TextStyle(fontSize: 12)),
-            Text('📤 Messages Sent: $messagesSent', style: const TextStyle(fontSize: 12)),
-            Text('🔔 Active Subscriptions: ${_subscriptions.length}', style: const TextStyle(fontSize: 12)),
-            Text('🔄 Reconnect Attempts: $_reconnectAttempts/$_maxReconnectAttempts', style: const TextStyle(fontSize: 12)),
+            Text('📨 Messages Received: $messagesReceived',
+                style: const TextStyle(fontSize: 12)),
+            Text('📤 Messages Sent: $messagesSent',
+                style: const TextStyle(fontSize: 12)),
+            Text('🔔 Active Subscriptions: ${_subscriptions.length}',
+                style: const TextStyle(fontSize: 12)),
+            Text(
+                '🔄 Reconnect Attempts: $_reconnectAttempts/$_maxReconnectAttempts',
+                style: const TextStyle(fontSize: 12)),
           ],
         ),
       ),
@@ -2961,39 +3045,37 @@ Future<void> _deleteAllProfiles() async {
       final uri = Uri.parse(url);
       final useWebSocket = url.startsWith('ws://') || url.startsWith('wss://');
       final useSSL = url.startsWith('ssl://') || url.startsWith('wss://');
-      
-      _logMessage('Debug', 
+
+      _logMessage(
+          'Debug',
           'URL Analysis:\n'
-          '• Original: $url\n'
-          '• Scheme: ${uri.scheme}\n'
-          '• Host: ${uri.host}\n'
-          '• Port: ${uri.port} (0 means default)\n'
-          '• WebSocket: $useWebSocket\n'
-          '• SSL: $useSSL\n'
-          '• Path: ${uri.path}',
+              '• Original: $url\n'
+              '• Scheme: ${uri.scheme}\n'
+              '• Host: ${uri.host}\n'
+              '• Port: ${uri.port} (0 means default)\n'
+              '• WebSocket: $useWebSocket\n'
+              '• SSL: $useSSL\n'
+              '• Path: ${uri.path}',
           isIncoming: false);
     } catch (e) {
       _logMessage('Debug', 'Failed to parse URL: $e', isIncoming: false);
     }
   }
 
-
-
   @override
   void dispose() {
-
-    _scrollController.dispose();  // ← ADD THIS LINE
+    _scrollController.dispose(); // ← ADD THIS LINE
     _reconnectTimer?.cancel();
     _connectionHealthTimer?.cancel();
     _uptimeTimer?.cancel();
     _keepAliveTimer?.cancel();
     _searchDebounce?.cancel();
     _updatesSub?.cancel();
-    
+
     if (_client != null && _connectionState == ConnectionState.connected) {
       _client?.disconnect();
     }
-    
+
     urlCtrl.dispose();
     clientIdCtrl.dispose();
     subTopicCtrl.dispose();
@@ -3006,7 +3088,7 @@ Future<void> _deleteAllProfiles() async {
     willPayloadCtrl.dispose();
     searchCtrl.dispose();
     keyPasswordCtrl.dispose();
-    
+
     super.dispose();
   }
 
@@ -3014,7 +3096,8 @@ Future<void> _deleteAllProfiles() async {
   Widget build(BuildContext context) {
     final theme = _isDarkMode ? ThemeData.dark() : ThemeData.light();
     final inputDecoration = InputDecoration(
-      border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+      border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       fillColor: _isDarkMode ? Colors.grey[800] : Colors.white,
@@ -3024,1816 +3107,2169 @@ Future<void> _deleteAllProfiles() async {
     return MaterialApp(
       theme: theme,
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('MQTT Mobile App'),
-          backgroundColor: _isDarkMode ? Colors.grey[800] : Colors.blue,
-          foregroundColor: Colors.white,
-          actions: [
-
-            // ADD THIS HELP BUTTON HERE
-            IconButton(
-               icon: const Icon(Icons.help_outline),
-               onPressed: _showBrokerHelp,
-               tooltip: 'MQTT Ports & Authentication Help',
-            ),
-            IconButton(
-              icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
-              onPressed: () => setState(() => _isDarkMode = !_isDarkMode),
-              tooltip: _isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-            ),
-          ],
-        ),
-
-
-        bottomNavigationBar: BottomAppBar(
-        
-        child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: _exportDatabase,
-            tooltip: 'Export Message History',
-          ),
-          IconButton(
-            icon: const Icon(Icons.clear_all),
-            onPressed: _clearMessages,
-            tooltip: 'Clear Messages',
-          ),
-          if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _forceReconnect,
-              tooltip: 'Reconnect',
-            ),
-          IconButton(
-            icon: const Icon(Icons.bug_report),
-            onPressed: () { 
-             
-             _logMessage('Debug', 
-                    'Current Connection State:\n'
-                    'State: $_connectionState\n'
-                    'Will Enabled: $_enableWillMessage\n'
-                    'Certificate Type: ${_getCertificateTypeName()}\n'
-                    'Clean Session: $_cleanSession\n'
-                    'Keep Alive: ${keepAliveCtrl.text}\n'
-                    'Auto Reconnect: $_autoReconnect\n'
-                    'Reconnect Attempts: $_reconnectAttempts\n'
-                    'Active Subscriptions: ${_subscriptions.length}\n'
-                    'Client ID: ${clientIdCtrl.text}',
-                    isIncoming: false);
-               },
-
-            tooltip: 'Debug Connection',
-          ),
-        ],
-      ),
-    ),
-        
-
-        body: Stack(
-
-          children: [
-
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _getConnectionStateColor().withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _getConnectionStateColor()),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _connectionState == ConnectionState.connected 
-                            ? Icons.wifi 
-                            : Icons.wifi_off,
-                        color: _getConnectionStateColor(),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _getConnectionStateText(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: _getConnectionStateColor(),
-                          ),
-                        ),
-                      ),
-                      if (_connectionState == ConnectionState.error || _connectionState == ConnectionState.disconnected)
-                        IconButton(
-                          icon: const Icon(Icons.refresh, size: 20),
-                          onPressed: _forceReconnect,
-                          tooltip: 'Reconnect',
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                _buildConnectionStats(),
-                
-                const SizedBox(height: 16),
-                
-                // Quick Test Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.bolt, color: Colors.amber),
-                            SizedBox(width: 8),
-                            Text(
-                              'Quick Test',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Test with popular public brokers',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                               ActionChip(
-  avatar: const Icon(Icons.warning_amber, size: 16),
-  label: const Text('EMQX 1884 (Test)'),
-  backgroundColor: Colors.orange.shade100,
-  labelStyle: const TextStyle(color: Colors.orange),
-  onPressed: () {
-    urlCtrl.text = 'tcp://broker.emqx.io:1884';
-    _enableAuth = true;
-    usernameCtrl.text = 'emqx_test';
-    passwordCtrl.text = 'emqx_test';
-    _logMessage('Test', 
-        '⚠️ Testing EMQX port 1884\n'
-        'Note: This port may not work as EMQX changes configurations.\n'
-        'This demonstrates how SOME brokers use port 1884 for auth.',
-        isIncoming: false);
-  },
-),
-
-                            ActionChip(
-                              avatar: const Icon(Icons.play_arrow, size: 16),
-                              label: const Text('Mosquitto TCP'),
-                              backgroundColor: Colors.amber.shade100,
-                              labelStyle: const TextStyle(color: Colors.amber),
-                              onPressed: () {
-                                urlCtrl.text = 'tcp://test.mosquitto.org:1883';
-                                _enableTLS = false;
-                                _certificateType = CertificateType.none;
-                                _logMessage('Test', 'Set to Mosquitto TCP broker', isIncoming: false);
-                              },
-                            ),
-                            ActionChip(
-                              avatar: const Icon(Icons.play_arrow, size: 16),
-                              label: const Text('Mosquitto WS'),
-                              backgroundColor: Colors.amber.shade100,
-                              labelStyle: const TextStyle(color: Colors.amber),
-                              onPressed: () {
-                                urlCtrl.text = 'ws://test.mosquitto.org:8883';
-                                _enableTLS = false;
-                                _certificateType = CertificateType.none;
-                                _logMessage('Test', 'Set to Mosquitto WebSocket broker', isIncoming: false);
-                              },
-                            ),
-                            ActionChip(
-                              avatar: const Icon(Icons.play_arrow, size: 16),
-                              label: const Text('EMQX TCP'),
-                              backgroundColor: Colors.amber.shade100,
-                              labelStyle: const TextStyle(color: Colors.amber),
-                              onPressed: () {
-                                urlCtrl.text = 'tcp://broker.emqx.io:1883';
-                                _enableTLS = false;
-                                _certificateType = CertificateType.none;
-                                _logMessage('Test', 'Set to EMQX TCP broker', isIncoming: false);
-                              },
-                            ),
-                            ActionChip(
-                              avatar: const Icon(Icons.play_arrow, size: 16),
-                              label: const Text('EMQX WS'),
-                              backgroundColor: Colors.amber.shade100,
-                              labelStyle: const TextStyle(color: Colors.amber),
-                              onPressed: () {
-                                urlCtrl.text = 'ws://broker.emqx.io:8883';
-                                _enableTLS = false;
-                                _certificateType = CertificateType.none;
-                                _logMessage('Test', 'Set to EMQX WebSocket broker', isIncoming: false);
-                              },
-                            ),
-                            ActionChip(
-                              avatar: const Icon(Icons.lock, size: 16),
-                              label: const Text('SSL Test'),
-                              backgroundColor: Colors.amber.shade100,
-                              labelStyle: const TextStyle(color: Colors.amber),
-                              onPressed: () {
-                                urlCtrl.text = 'ssl://broker.emqx.io:8883';
-                                _enableTLS = true;
-                                _certificateType = CertificateType.selfSigned;
-                                _logMessage('Test', 'Set to EMQX SSL broker with self-signed certificates', isIncoming: false);
-                              },
-                            ),
-
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                
-                // Templates Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.content_copy, color: Colors.purple),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Message Templates',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(
-                                _showTemplates ? Icons.expand_less : Icons.expand_more,
-                                color: Colors.purple,
-                              ),
-                              onPressed: () => setState(() => _showTemplates = !_showTemplates),
-                              tooltip: _showTemplates ? 'Hide Templates' : 'Show Templates',
-                            ),
-                          ],
-                        ),
-
-
-
-                        if (_showTemplates) ...[
-                          const SizedBox(height: 12),
-                          if (_templates.isEmpty) 
-                            const Text('No templates saved. Create your first one!'),
-                          if (_templates.isNotEmpty) ...[
-                            const Text(
-                              'Quick Load:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-
-                                 children: _templates.map((template) => GestureDetector(
-    onLongPress: () => _showRenameTemplateDialog(template),
-    child: ActionChip(
-      avatar: _currentTemplate?.id == template.id 
-          ? const Icon(Icons.check, size: 16, color: Colors.white)
-          : const Icon(Icons.description, size: 16),
-      label: Text(template.name),
-      backgroundColor: _currentTemplate?.id == template.id 
-          ? Colors.purple 
-          : Colors.purple.shade100,
-      labelStyle: TextStyle(
-        color: _currentTemplate?.id == template.id 
-            ? Colors.white 
-            : Colors.purple,
-        fontWeight: FontWeight.w500,
-      ),
-      onPressed: () => _loadTemplate(template),
-    ),
-  )).toList(),
-
-
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _saveCurrentAsTemplate,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                  icon: const Icon(Icons.save, size: 18),
-                                  label: const Text('Save Current as Template'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (_currentTemplate != null) ...[
-                                 IconButton(
-                                     icon: const Icon(Icons.edit, color: Colors.blue),
-                                     onPressed: () => _showRenameTemplateDialog(_currentTemplate!),
-                                     tooltip: 'Rename Current Template',
-                                   ),
-
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteTemplate(_currentTemplate!),
-                                  tooltip: 'Delete Current Template',
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                
-                // Profiles Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.bookmark, color: Colors.purple),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Connection Profiles',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(
-                                _showProfiles ? Icons.expand_less : Icons.expand_more,
-                                color: Colors.purple,
-                              ),
-                              onPressed: () => setState(() => _showProfiles = !_showProfiles),
-                              tooltip: _showProfiles ? 'Hide Profiles' : 'Show Profiles',
-                            ),
-                          ],
-                        ),
-                        if (_showProfiles) ...[
-                          const SizedBox(height: 12),
-                          if (_profiles.isEmpty) 
-                            const Text('No profiles saved. Create your first one!'),
-                          if (_profiles.isNotEmpty) ...[
-                            const Text(
-                              'Quick Connect:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _profiles.map((profile) => GestureDetector(
-                                onLongPress: () => _showRenameDialog(profile),
-                                child: ActionChip(
-                                  avatar: _currentProfile?.id == profile.id 
-                                      ? const Icon(Icons.check, size: 16, color: Colors.white)
-                                      : const Icon(Icons.play_arrow, size: 16),
-                                  label: Text(profile.name),
-                                  backgroundColor: _currentProfile?.id == profile.id 
-                                      ? Colors.purple 
-                                      : Colors.purple.shade100,
-                                  labelStyle: TextStyle(
-                                    color: _currentProfile?.id == profile.id 
-                                        ? Colors.white 
-                                      : Colors.purple,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  onPressed: () => _loadProfile(profile),
-                                ),
-                              )).toList(),
-                            ),
-                           
-                          ],
-                          // === ADD THIS LOAD DEFAULT BUTTON HERE ===
-                          
-                           const SizedBox(height: 12),
-    if (_profiles.isNotEmpty && _currentProfile == null) ...[
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          onPressed: () => _loadProfile(_profiles.first),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.purple,
-            side: const BorderSide(color: Colors.purple),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-          ),
-          icon: const Icon(Icons.restore, size: 16),
-          label: const Text('LOAD DEFAULT PROFILE'),
-        ),
-      ),
-      const SizedBox(height: 12),
-    ],
-    // === END OF ADDED CODE ===
-
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _saveCurrentAsProfile,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                  icon: const Icon(Icons.save, size: 18),
-                                  label: const Text('Save Current as Profile'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (_currentProfile != null) ...[
-                                IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showRenameDialog(_currentProfile!),
-                                  tooltip: 'Rename Current Profile',
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _showDeleteDialog(_currentProfile!),
-                                  tooltip: 'Delete Current Profile',
-                                ),
-                              ],
-                            ],
-                          ),
-                          if (_currentProfile != null) ...[
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton(
-                                onPressed: _updateCurrentProfile,
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.blue,
-                                  side: const BorderSide(color: Colors.blue),
-                                ),
-                                child: const Text('Update Current Profile with Current Settings'),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Current: ${_currentProfile!.name}',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ],
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                
-
-// SSL/TLS Certificate Configuration Section - FILE NAME FIX
-Card(
-  elevation: 4,
-  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  child: Padding(
-    padding: const EdgeInsets.all(12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Icon(Icons.lock, color: Colors.red, size: 20),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'SSL/TLS Certificate Configuration',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
+          appBar: AppBar(
+            title: const Text('MQTT Mobile App'),
+            backgroundColor: _isDarkMode ? Colors.grey[800] : Colors.blue,
+            foregroundColor: Colors.white,
+            actions: [
+              // ADD THIS HELP BUTTON HERE
+              IconButton(
+                icon: const Icon(Icons.help_outline),
+                onPressed: _showBrokerHelp,
+                tooltip: 'MQTT Ports & Authentication Help',
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        
-        // Enable SSL/TLS toggle
-        CheckboxListTile(
-          title: const Text('Enable SSL/TLS'),
-          subtitle: const Text('Secure connection (ssl://, wss://)'),
-          value: _enableTLS,
-          onChanged: (value) => setState(() {
-            _enableTLS = value ?? false;
-            if (!_enableTLS) {
-              _certificateType = CertificateType.none;
-            }
-          }),
-          dense: true,
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-        ),
-        
-        if (_enableTLS) ...[
-          const SizedBox(height: 12),
-          
-          // Certificate Type Selection
-          DropdownButtonFormField<CertificateType>(
-            value: _certificateType,
-            decoration: inputDecoration.copyWith(
-              labelText: 'Certificate Type',
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            ),
-            isExpanded: true,
-            items: const [
-              DropdownMenuItem(
-                value: CertificateType.caSigned,
-                child: Text('CA Signed Server Certificate'),
-              ),
-              DropdownMenuItem(
-                value: CertificateType.caOnly,
-                child: Text('CA Certificate Only'),
-              ),
-              DropdownMenuItem(
-                value: CertificateType.selfSigned,
-                child: Text('Self-Signed Certificate'),
-              ),
-              DropdownMenuItem(
-                value: CertificateType.mutualTls,
-                child: Text('Mutual TLS'),
-              ),
-              DropdownMenuItem(
-                value: CertificateType.none,
-                child: Text('Standard SSL/TLS'),
+              IconButton(
+                icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
+                onPressed: () => setState(() => _isDarkMode = !_isDarkMode),
+                tooltip: _isDarkMode
+                    ? 'Switch to Light Mode'
+                    : 'Switch to Dark Mode',
               ),
             ],
-            onChanged: (value) => setState(() => _certificateType = value ?? CertificateType.none),
           ),
-          
-          const SizedBox(height: 8),
-          
-          // Backward compatibility option
-          if (_certificateType == CertificateType.none)
-          CheckboxListTile(
-            title: const Text('Allow Self-Signed'),
-            subtitle: const Text('Accept self-signed certificates'),
-            value: _allowSelfSigned,
-            onChanged: (value) => setState(() => _allowSelfSigned = value ?? true),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-          ),
-          
-          // CA Certificate Upload - FIXED WITH FLEXIBLE LAYOUT
-          if (_certificateType == CertificateType.caSigned || 
-              _certificateType == CertificateType.caOnly || 
-              _certificateType == CertificateType.mutualTls)
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(8),
-            ),
+          bottomNavigationBar: BottomAppBar(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                const Icon(Icons.security, color: Colors.blue, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'CA Certificate',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 2),
-                      _caCertificatePath != null 
-                          ? Text(
-                              path.basename(_caCertificatePath!),
-                              style: const TextStyle(fontSize: 12),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            )
-                          : const Text(
-                              'Not selected',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                    ],
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.download),
+                  onPressed: _exportDatabase,
+                  tooltip: 'Export Message History',
                 ),
-                const SizedBox(width: 8),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.upload_file, size: 20),
-                      onPressed: _pickCaCertificate,
-                      padding: const EdgeInsets.all(4),
-                    ),
-                    if (_caCertificatePath != null)
-                      IconButton(
-                        icon: const Icon(Icons.close, size: 20, color: Colors.red),
-                        onPressed: () => setState(() => _caCertificatePath = null),
-                        padding: const EdgeInsets.all(4),
-                      ),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.clear_all),
+                  onPressed: _clearMessages,
+                  tooltip: 'Clear Messages',
+                ),
+                if (_connectionState == ConnectionState.error ||
+                    _connectionState == ConnectionState.disconnected)
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _forceReconnect,
+                    tooltip: 'Reconnect',
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.bug_report),
+                  onPressed: () {
+                    _logMessage(
+                        'Debug',
+                        'Current Connection State:\n'
+                            'State: $_connectionState\n'
+                            'Will Enabled: $_enableWillMessage\n'
+                            'Certificate Type: ${_getCertificateTypeName()}\n'
+                            'Clean Session: $_cleanSession\n'
+                            'Keep Alive: ${keepAliveCtrl.text}\n'
+                            'Auto Reconnect: $_autoReconnect\n'
+                            'Reconnect Attempts: $_reconnectAttempts\n'
+                            'Active Subscriptions: ${_subscriptions.length}\n'
+                            'Client ID: ${clientIdCtrl.text}',
+                        isIncoming: false);
+                  },
+                  tooltip: 'Debug Connection',
                 ),
               ],
             ),
           ),
-          
-          // Client Certificate Upload (for Mutual TLS) - SIMILAR FIX
-          if (_certificateType == CertificateType.mutualTls)
-          Column(
+          body: Stack(
             children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.badge, color: Colors.green, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Client Certificate',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 2),
-                          _clientCertificatePath != null 
-                              ? Text(
-                                  path.basename(_clientCertificatePath!),
-                                  style: const TextStyle(fontSize: 12),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                )
-                              : const Text(
-                                  'Not selected',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.upload_file, size: 20),
-                          onPressed: _pickClientCertificate,
-                          padding: const EdgeInsets.all(4),
-                        ),
-                        if (_clientCertificatePath != null)
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 20, color: Colors.red),
-                            onPressed: () => setState(() => _clientCertificatePath = null),
-                            padding: const EdgeInsets.all(4),
-                          ),
-                      ],
-                ),
-                  ],
-                ),
-              ),
-              
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.vpn_key, color: Colors.orange, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Private Key',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 2),
-                          _clientPrivateKeyPath != null 
-                              ? Text(
-                                  path.basename(_clientPrivateKeyPath!),
-                                  style: const TextStyle(fontSize: 12),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                )
-                              : const Text(
-                                  'Not selected',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.upload_file, size: 20),
-                          onPressed: _pickPrivateKey,
-                          padding: const EdgeInsets.all(4),
-                        ),
-                        if (_clientPrivateKeyPath != null)
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 20, color: Colors.red),
-                            onPressed: () => setState(() => _clientPrivateKeyPath = null),
-                            padding: const EdgeInsets.all(4),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              
-              if (_clientPrivateKeyPath != null)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: TextField(
-                  controller: keyPasswordCtrl,
-                  obscureText: true,
-                  decoration: inputDecoration.copyWith(
-                    labelText: 'Key Password (optional)',
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    isDense: true,
-                  ),
-                  onChanged: (value) => _clientKeyPassword = value,
-                ),
-              ),
-            ],
-          ),
-          
-          // Verification Options
-          if (_certificateType != CertificateType.selfSigned && _certificateType != CertificateType.none)
-          CheckboxListTile(
-            title: const Text('Verify Certificate', style: TextStyle(fontSize: 14)),
-            subtitle: const Text('Validate certificate chain', style: TextStyle(fontSize: 12)),
-            value: _verifyCertificate,
-            onChanged: (value) => setState(() => _verifyCertificate = value ?? true),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-          ),
-          
-          const SizedBox(height: 12),
-          
-          // Action Buttons
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _testCertificateConnection,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                icon: const Icon(Icons.verified, size: 16),
-                label: const Text('TEST', style: TextStyle(fontSize: 12)),
-              ),
-              OutlinedButton.icon(
-                onPressed: () {
-                  _logMessage('Certificate Help', 
-                      'Certificate Types:\n'
-                      '1. CA Signed: Validate server with CA cert\n'
-                      '2. CA Only: Trust only specific CA\n'
-                      '3. Self-Signed: Testing only\n'
-                      '4. Mutual TLS: Client + server certs\n'
-                      '5. Standard SSL: System defaults',
-                      isIncoming: false);
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  side: const BorderSide(color: Colors.blue),
-                ),
-                icon: const Icon(Icons.info, size: 16, color: Colors.blue),
-                label: const Text('HELP', style: TextStyle(fontSize: 12, color: Colors.blue)),
-              ),
-              OutlinedButton.icon(
-                onPressed: _clearCertificateFiles,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  side: const BorderSide(color: Colors.red),
-                ),
-                icon: const Icon(Icons.cleaning_services, size: 16, color: Colors.red),
-                label: const Text('CLEAR', style: TextStyle(fontSize: 12, color: Colors.red)),
-              ),
-            ],
-          ),
-          
-          // Certificate Info Display
-          if (_showCertificateInfo && _certificateInfo.isNotEmpty)
-          const SizedBox(height: 8),
-          if (_showCertificateInfo && _certificateInfo.isNotEmpty)
-          Card(
-            color: Colors.green[50],
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('📄 Certificate Info:', 
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Container(
-                    constraints: const BoxConstraints(maxHeight: 100),
-                    child: SingleChildScrollView(
-                      child: Text(
-                        _certificateInfo, 
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ],
-    ),
-  ),
-),
+                padding: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
 
-
-                const SizedBox(height: 16),
-
-                // Connection Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.link, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text(
-                              'Broker Connection',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _getConnectionStateColor().withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: _getConnectionStateColor()),
                         ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: urlCtrl,
-                          decoration: inputDecoration.copyWith(
-                            labelText: 'Broker URL (tcp://, ws://, ssl://, wss://)',
-                            hintText: 'e.g., tcp://test.mosquitto.org:1883',
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.info, size: 18),
-                              onPressed: () {
-                                _logMessage('Tips', 
-                                    'Common broker URLs:\n'
-                                    '• tcp://test.mosquitto.org:1883\n'
-                                    '• ws://test.mosquitto.org:8080\n'
-                                    '• tcp://broker.emqx.io:1883\n'
-                                    '• ws://broker.emqx.io:8083\n'
-                                    '• ssl://broker.emqx.io:8883',
-                                    isIncoming: false);
-                              },
-                              tooltip: 'Common broker examples',
-                            ),
-                          ),
-                          keyboardType: TextInputType.url,
-                    
-                          
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
+                        child: Row(
                           children: [
-                            Expanded(
-                              child: TextField(
-                                controller: clientIdCtrl,
-                                decoration: inputDecoration.copyWith(
-                                  labelText: 'Client ID',
-                                  hintText: 'Leave empty for auto-generate',
-                                ),
-                              ),
+                            Icon(
+                              _connectionState == ConnectionState.connected
+                                  ? Icons.wifi
+                                  : Icons.wifi_off,
+                              color: _getConnectionStateColor(),
                             ),
                             const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: () {
-                                clientIdCtrl.text = 'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(6)}';
-                                _logMessage('System', 'Generated new Client ID', isIncoming: false);
-                              },
-                              tooltip: 'Generate new Client ID',
-                            ),
-                          ],
-                        ),
-                        
-                        // Auto-reconnect setting
-                        CheckboxListTile(
-                          title: const Text('Auto-reconnect'),
-                          subtitle: const Text('Automatically reconnect if connection is lost'),
-                          value: _autoReconnect,
-                          onChanged: (value) => setState(() => _autoReconnect = value ?? true),
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        
-                        if (_reconnectAttempts > 0) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _reconnectAttempts >= _maxReconnectAttempts 
-                                  ? Colors.red.withOpacity(0.1)
-                                  : Colors.orange.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: _reconnectAttempts >= _maxReconnectAttempts 
-                                  ? Colors.red
-                                  : Colors.orange,
+                            Expanded(
+                              child: Text(
+                                _getConnectionStateText(),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: _getConnectionStateColor(),
+                                ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _reconnectAttempts >= _maxReconnectAttempts 
-                                      ? Icons.error
-                                      : Icons.autorenew,
-                                  color: _reconnectAttempts >= _maxReconnectAttempts 
-                                      ? Colors.red
-                                      : Colors.orange,
-                                  size: 16,
+                            if (_connectionState == ConnectionState.error ||
+                                _connectionState ==
+                                    ConnectionState.disconnected)
+                              IconButton(
+                                icon: const Icon(Icons.refresh, size: 20),
+                                onPressed: _forceReconnect,
+                                tooltip: 'Reconnect',
+                                padding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildConnectionStats(),
+
+                      const SizedBox(height: 16),
+
+                      // Quick Test Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.bolt, color: Colors.amber),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Quick Test',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Test with popular public brokers',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  ActionChip(
+                                    avatar: const Icon(Icons.warning_amber,
+                                        size: 16),
+                                    label: const Text('EMQX 1884 (Test)'),
+                                    backgroundColor: Colors.orange.shade100,
+                                    labelStyle:
+                                        const TextStyle(color: Colors.orange),
+                                    onPressed: () {
+                                      urlCtrl.text =
+                                          'tcp://broker.emqx.io:1884';
+                                      _enableAuth = true;
+                                      usernameCtrl.text = 'emqx_test';
+                                      passwordCtrl.text = 'emqx_test';
+                                      _logMessage(
+                                          'Test',
+                                          '⚠️ Testing EMQX port 1884\n'
+                                              'Note: This port may not work as EMQX changes configurations.\n'
+                                              'This demonstrates how SOME brokers use port 1884 for auth.',
+                                          isIncoming: false);
+                                    },
+                                  ),
+                                  ActionChip(
+                                    avatar:
+                                        const Icon(Icons.play_arrow, size: 16),
+                                    label: const Text('Mosquitto TCP'),
+                                    backgroundColor: Colors.amber.shade100,
+                                    labelStyle:
+                                        const TextStyle(color: Colors.amber),
+                                    onPressed: () {
+                                      urlCtrl.text =
+                                          'tcp://test.mosquitto.org:1883';
+                                      _enableTLS = false;
+                                      _certificateType = CertificateType.none;
+                                      _logMessage(
+                                          'Test', 'Set to Mosquitto TCP broker',
+                                          isIncoming: false);
+                                    },
+                                  ),
+                                  ActionChip(
+                                    avatar:
+                                        const Icon(Icons.play_arrow, size: 16),
+                                    label: const Text('Mosquitto WS'),
+                                    backgroundColor: Colors.amber.shade100,
+                                    labelStyle:
+                                        const TextStyle(color: Colors.amber),
+                                    onPressed: () {
+                                      urlCtrl.text =
+                                          'ws://test.mosquitto.org:8883';
+                                      _enableTLS = false;
+                                      _certificateType = CertificateType.none;
+                                      _logMessage('Test',
+                                          'Set to Mosquitto WebSocket broker',
+                                          isIncoming: false);
+                                    },
+                                  ),
+                                  ActionChip(
+                                    avatar:
+                                        const Icon(Icons.play_arrow, size: 16),
+                                    label: const Text('EMQX TCP'),
+                                    backgroundColor: Colors.amber.shade100,
+                                    labelStyle:
+                                        const TextStyle(color: Colors.amber),
+                                    onPressed: () {
+                                      urlCtrl.text =
+                                          'tcp://broker.emqx.io:1883';
+                                      _enableTLS = false;
+                                      _certificateType = CertificateType.none;
+                                      _logMessage(
+                                          'Test', 'Set to EMQX TCP broker',
+                                          isIncoming: false);
+                                    },
+                                  ),
+                                  ActionChip(
+                                    avatar:
+                                        const Icon(Icons.play_arrow, size: 16),
+                                    label: const Text('EMQX WS'),
+                                    backgroundColor: Colors.amber.shade100,
+                                    labelStyle:
+                                        const TextStyle(color: Colors.amber),
+                                    onPressed: () {
+                                      urlCtrl.text = 'ws://broker.emqx.io:8883';
+                                      _enableTLS = false;
+                                      _certificateType = CertificateType.none;
+                                      _logMessage('Test',
+                                          'Set to EMQX WebSocket broker',
+                                          isIncoming: false);
+                                    },
+                                  ),
+                                  ActionChip(
+                                    avatar: const Icon(Icons.lock, size: 16),
+                                    label: const Text('SSL Test'),
+                                    backgroundColor: Colors.amber.shade100,
+                                    labelStyle:
+                                        const TextStyle(color: Colors.amber),
+                                    onPressed: () {
+                                      urlCtrl.text =
+                                          'ssl://broker.emqx.io:8883';
+                                      _enableTLS = true;
+                                      _certificateType =
+                                          CertificateType.selfSigned;
+                                      _logMessage('Test',
+                                          'Set to EMQX SSL broker with self-signed certificates',
+                                          isIncoming: false);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Templates Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.content_copy,
+                                      color: Colors.purple),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Message Templates',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: Icon(
+                                      _showTemplates
+                                          ? Icons.expand_less
+                                          : Icons.expand_more,
+                                      color: Colors.purple,
+                                    ),
+                                    onPressed: () => setState(
+                                        () => _showTemplates = !_showTemplates),
+                                    tooltip: _showTemplates
+                                        ? 'Hide Templates'
+                                        : 'Show Templates',
+                                  ),
+                                ],
+                              ),
+                              if (_showTemplates) ...[
+                                const SizedBox(height: 12),
+                                if (_templates.isEmpty)
+                                  const Text(
+                                      'No templates saved. Create your first one!'),
+                                if (_templates.isNotEmpty) ...[
+                                  const Text(
+                                    'Quick Load:',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _templates
+                                        .map((template) => GestureDetector(
+                                              onLongPress: () =>
+                                                  _showRenameTemplateDialog(
+                                                      template),
+                                              child: ActionChip(
+                                                avatar: _currentTemplate?.id ==
+                                                        template.id
+                                                    ? const Icon(Icons.check,
+                                                        size: 16,
+                                                        color: Colors.white)
+                                                    : const Icon(
+                                                        Icons.description,
+                                                        size: 16),
+                                                label: Text(template.name),
+                                                backgroundColor:
+                                                    _currentTemplate?.id ==
+                                                            template.id
+                                                        ? Colors.purple
+                                                        : Colors
+                                                            .purple.shade100,
+                                                labelStyle: TextStyle(
+                                                  color: _currentTemplate?.id ==
+                                                          template.id
+                                                      ? Colors.white
+                                                      : Colors.purple,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                onPressed: () =>
+                                                    _loadTemplate(template),
+                                              ),
+                                            ))
+                                        .toList(),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: _saveCurrentAsTemplate,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.purple,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                        ),
+                                        icon: const Icon(Icons.save, size: 18),
+                                        label: const Text(
+                                            'Save Current as Template'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    if (_currentTemplate != null) ...[
+                                      IconButton(
+                                        icon: const Icon(Icons.edit,
+                                            color: Colors.blue),
+                                        onPressed: () =>
+                                            _showRenameTemplateDialog(
+                                                _currentTemplate!),
+                                        tooltip: 'Rename Current Template',
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () =>
+                                            _deleteTemplate(_currentTemplate!),
+                                        tooltip: 'Delete Current Template',
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Reconnect attempts: $_reconnectAttempts/$_maxReconnectAttempts',
-                                  style: TextStyle(
-                                    color: _reconnectAttempts >= _maxReconnectAttempts 
-                                        ? Colors.red
-                                        : Colors.orange,
-                                    fontSize: 12,
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Profiles Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.bookmark,
+                                      color: Colors.purple),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Connection Profiles',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: Icon(
+                                      _showProfiles
+                                          ? Icons.expand_less
+                                          : Icons.expand_more,
+                                      color: Colors.purple,
+                                    ),
+                                    onPressed: () => setState(
+                                        () => _showProfiles = !_showProfiles),
+                                    tooltip: _showProfiles
+                                        ? 'Hide Profiles'
+                                        : 'Show Profiles',
+                                  ),
+                                ],
+                              ),
+                              if (_showProfiles) ...[
+                                const SizedBox(height: 12),
+                                if (_profiles.isEmpty)
+                                  const Text(
+                                      'No profiles saved. Create your first one!'),
+                                if (_profiles.isNotEmpty) ...[
+                                  const Text(
+                                    'Quick Connect:',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _profiles
+                                        .map((profile) => GestureDetector(
+                                              onLongPress: () =>
+                                                  _showRenameDialog(profile),
+                                              child: ActionChip(
+                                                avatar: _currentProfile?.id ==
+                                                        profile.id
+                                                    ? const Icon(Icons.check,
+                                                        size: 16,
+                                                        color: Colors.white)
+                                                    : const Icon(
+                                                        Icons.play_arrow,
+                                                        size: 16),
+                                                label: Text(profile.name),
+                                                backgroundColor: _currentProfile
+                                                            ?.id ==
+                                                        profile.id
+                                                    ? Colors.purple
+                                                    : Colors.purple.shade100,
+                                                labelStyle: TextStyle(
+                                                  color: _currentProfile?.id ==
+                                                          profile.id
+                                                      ? Colors.white
+                                                      : Colors.purple,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                onPressed: () =>
+                                                    _loadProfile(profile),
+                                              ),
+                                            ))
+                                        .toList(),
+                                  ),
+                                ],
+                                // === ADD THIS LOAD DEFAULT BUTTON HERE ===
+
+                                const SizedBox(height: 12),
+                                if (_profiles.isNotEmpty &&
+                                    _currentProfile == null) ...[
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () =>
+                                          _loadProfile(_profiles.first),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.purple,
+                                        side: const BorderSide(
+                                            color: Colors.purple),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 8),
+                                      ),
+                                      icon: const Icon(Icons.restore, size: 16),
+                                      label: const Text('LOAD DEFAULT PROFILE'),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                // === END OF ADDED CODE ===
+
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: _saveCurrentAsProfile,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.purple,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                        ),
+                                        icon: const Icon(Icons.save, size: 18),
+                                        label: const Text(
+                                            'Save Current as Profile'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    if (_currentProfile != null) ...[
+                                      IconButton(
+                                        icon: const Icon(Icons.edit,
+                                            color: Colors.blue),
+                                        onPressed: () =>
+                                            _showRenameDialog(_currentProfile!),
+                                        tooltip: 'Rename Current Profile',
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () =>
+                                            _showDeleteDialog(_currentProfile!),
+                                        tooltip: 'Delete Current Profile',
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                if (_currentProfile != null) ...[
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton(
+                                      onPressed: _updateCurrentProfile,
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.blue,
+                                        side: const BorderSide(
+                                            color: Colors.blue),
+                                      ),
+                                      child: const Text(
+                                          'Update Current Profile with Current Settings'),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Current: ${_currentProfile!.name}',
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+// SSL/TLS Certificate Configuration Section - FILE NAME FIX
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.lock, color: Colors.red, size: 20),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'SSL/TLS Certificate Configuration',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+
+                              // Enable SSL/TLS toggle
+                              CheckboxListTile(
+                                title: const Text('Enable SSL/TLS'),
+                                subtitle: const Text(
+                                    'Secure connection (ssl://, wss://)'),
+                                value: _enableTLS,
+                                onChanged: (value) => setState(() {
+                                  _enableTLS = value ?? false;
+                                  if (!_enableTLS) {
+                                    _certificateType = CertificateType.none;
+                                  }
+                                }),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                              ),
+
+                              if (_enableTLS) ...[
+                                const SizedBox(height: 12),
+
+                                // Certificate Type Selection
+                                DropdownButtonFormField<CertificateType>(
+                                  value: _certificateType,
+                                  decoration: inputDecoration.copyWith(
+                                    labelText: 'Certificate Type',
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 8),
+                                  ),
+                                  isExpanded: true,
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: CertificateType.caSigned,
+                                      child:
+                                          Text('CA Signed Server Certificate'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: CertificateType.caOnly,
+                                      child: Text('CA Certificate Only'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: CertificateType.selfSigned,
+                                      child: Text('Self-Signed Certificate'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: CertificateType.mutualTls,
+                                      child: Text('Mutual TLS'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: CertificateType.none,
+                                      child: Text('Standard SSL/TLS'),
+                                    ),
+                                  ],
+                                  onChanged: (value) => setState(() =>
+                                      _certificateType =
+                                          value ?? CertificateType.none),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Backward compatibility option
+                                if (_certificateType == CertificateType.none)
+                                  CheckboxListTile(
+                                    title: const Text('Allow Self-Signed'),
+                                    subtitle: const Text(
+                                        'Accept self-signed certificates'),
+                                    value: _allowSelfSigned,
+                                    onChanged: (value) => setState(
+                                        () => _allowSelfSigned = value ?? true),
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    controlAffinity:
+                                        ListTileControlAffinity.leading,
+                                  ),
+
+                                // CA Certificate Upload - FIXED WITH FLEXIBLE LAYOUT
+                                if (_certificateType ==
+                                        CertificateType.caSigned ||
+                                    _certificateType ==
+                                        CertificateType.caOnly ||
+                                    _certificateType ==
+                                        CertificateType.mutualTls)
+                                  Container(
+                                    margin:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: _isDarkMode
+                                          ? Colors.grey[800]
+                                          : Colors.grey.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.security,
+                                            color: Colors.blue, size: 20),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'CA Certificate',
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              _caCertificatePath != null
+                                                  ? Text(
+                                                      path.basename(
+                                                          _caCertificatePath!),
+                                                      style: const TextStyle(
+                                                          fontSize: 12),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 1,
+                                                    )
+                                                  : const Text(
+                                                      'Not selected',
+                                                      style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.grey),
+                                                    ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                  Icons.upload_file,
+                                                  size: 20),
+                                              onPressed: _pickCaCertificate,
+                                              padding: const EdgeInsets.all(4),
+                                            ),
+                                            if (_caCertificatePath != null)
+                                              IconButton(
+                                                icon: const Icon(Icons.close,
+                                                    size: 20,
+                                                    color: Colors.red),
+                                                onPressed: () => setState(() =>
+                                                    _caCertificatePath = null),
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                // Client Certificate Upload (for Mutual TLS) - SIMILAR FIX
+                                if (_certificateType ==
+                                    CertificateType.mutualTls)
+                                  Column(
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: _isDarkMode
+                                              ? Colors.grey[800]
+                                              : Colors.grey.shade50,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.badge,
+                                                color: Colors.green, size: 20),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'Client Certificate',
+                                                    style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  _clientCertificatePath != null
+                                                      ? Text(
+                                                          path.basename(
+                                                              _clientCertificatePath!),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 12),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          maxLines: 1,
+                                                        )
+                                                      : const Text(
+                                                          'Not selected',
+                                                          style: TextStyle(
+                                                              fontSize: 12,
+                                                              color:
+                                                                  Colors.grey),
+                                                        ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.upload_file,
+                                                      size: 20),
+                                                  onPressed:
+                                                      _pickClientCertificate,
+                                                  padding:
+                                                      const EdgeInsets.all(4),
+                                                ),
+                                                if (_clientCertificatePath !=
+                                                    null)
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                        Icons.close,
+                                                        size: 20,
+                                                        color: Colors.red),
+                                                    onPressed: () => setState(() =>
+                                                        _clientCertificatePath =
+                                                            null),
+                                                    padding:
+                                                        const EdgeInsets.all(4),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: _isDarkMode
+                                              ? Colors.grey[800]
+                                              : Colors.grey.shade50,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.vpn_key,
+                                                color: Colors.orange, size: 20),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'Private Key',
+                                                    style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  _clientPrivateKeyPath != null
+                                                      ? Text(
+                                                          path.basename(
+                                                              _clientPrivateKeyPath!),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 12),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          maxLines: 1,
+                                                        )
+                                                      : const Text(
+                                                          'Not selected',
+                                                          style: TextStyle(
+                                                              fontSize: 12,
+                                                              color:
+                                                                  Colors.grey),
+                                                        ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.upload_file,
+                                                      size: 20),
+                                                  onPressed: _pickPrivateKey,
+                                                  padding:
+                                                      const EdgeInsets.all(4),
+                                                ),
+                                                if (_clientPrivateKeyPath !=
+                                                    null)
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                        Icons.close,
+                                                        size: 20,
+                                                        color: Colors.red),
+                                                    onPressed: () => setState(() =>
+                                                        _clientPrivateKeyPath =
+                                                            null),
+                                                    padding:
+                                                        const EdgeInsets.all(4),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (_clientPrivateKeyPath != null)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4),
+                                          child: TextField(
+                                            controller: keyPasswordCtrl,
+                                            obscureText: true,
+                                            decoration:
+                                                inputDecoration.copyWith(
+                                              labelText:
+                                                  'Key Password (optional)',
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 8),
+                                              isDense: true,
+                                            ),
+                                            onChanged: (value) =>
+                                                _clientKeyPassword = value,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+
+                                // Verification Options
+                                if (_certificateType !=
+                                        CertificateType.selfSigned &&
+                                    _certificateType != CertificateType.none)
+                                  CheckboxListTile(
+                                    title: const Text('Verify Certificate',
+                                        style: TextStyle(fontSize: 14)),
+                                    subtitle: const Text(
+                                        'Validate certificate chain',
+                                        style: TextStyle(fontSize: 12)),
+                                    value: _verifyCertificate,
+                                    onChanged: (value) => setState(() =>
+                                        _verifyCertificate = value ?? true),
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    controlAffinity:
+                                        ListTileControlAffinity.leading,
+                                  ),
+
+                                const SizedBox(height: 12),
+
+                                // Action Buttons
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  alignment: WrapAlignment.center,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: _testCertificateConnection,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                      ),
+                                      icon:
+                                          const Icon(Icons.verified, size: 16),
+                                      label: const Text('TEST',
+                                          style: TextStyle(fontSize: 12)),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        _logMessage(
+                                            'Certificate Help',
+                                            'Certificate Types:\n'
+                                                '1. CA Signed: Validate server with CA cert\n'
+                                                '2. CA Only: Trust only specific CA\n'
+                                                '3. Self-Signed: Testing only\n'
+                                                '4. Mutual TLS: Client + server certs\n'
+                                                '5. Standard SSL: System defaults',
+                                            isIncoming: false);
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        side: const BorderSide(
+                                            color: Colors.blue),
+                                      ),
+                                      icon: const Icon(Icons.info,
+                                          size: 16, color: Colors.blue),
+                                      label: const Text('HELP',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.blue)),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: _clearCertificateFiles,
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        side:
+                                            const BorderSide(color: Colors.red),
+                                      ),
+                                      icon: const Icon(Icons.cleaning_services,
+                                          size: 16, color: Colors.red),
+                                      label: const Text('CLEAR',
+                                          style: TextStyle(
+                                              fontSize: 12, color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+
+                                // Certificate Info Display
+                                if (_showCertificateInfo &&
+                                    _certificateInfo.isNotEmpty)
+                                  const SizedBox(height: 8),
+                                if (_showCertificateInfo &&
+                                    _certificateInfo.isNotEmpty)
+                                  Card(
+                                    color: Colors.green[50],
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(6),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text('📄 Certificate Info:',
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold)),
+                                          const SizedBox(height: 4),
+                                          Container(
+                                            constraints: const BoxConstraints(
+                                                maxHeight: 100),
+                                            child: SingleChildScrollView(
+                                              child: Text(
+                                                _certificateInfo,
+                                                style: const TextStyle(
+                                                    fontSize: 11),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Connection Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.link, color: Colors.blue),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Broker Connection',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: urlCtrl,
+                                decoration: inputDecoration.copyWith(
+                                  labelText:
+                                      'Broker URL (tcp://, ws://, ssl://, wss://)',
+                                  hintText:
+                                      'e.g., tcp://test.mosquitto.org:1883',
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.info, size: 18),
+                                    onPressed: () {
+                                      _logMessage(
+                                          'Tips',
+                                          'Common broker URLs:\n'
+                                              '• tcp://test.mosquitto.org:1883\n'
+                                              '• ws://test.mosquitto.org:8080\n'
+                                              '• tcp://broker.emqx.io:1883\n'
+                                              '• ws://broker.emqx.io:8083\n'
+                                              '• ssl://broker.emqx.io:8883',
+                                          isIncoming: false);
+                                    },
+                                    tooltip: 'Common broker examples',
+                                  ),
+                                ),
+                                keyboardType: TextInputType.url,
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: clientIdCtrl,
+                                      decoration: inputDecoration.copyWith(
+                                        labelText: 'Client ID',
+                                        hintText:
+                                            'Leave empty for auto-generate',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.refresh),
+                                    onPressed: () {
+                                      clientIdCtrl.text =
+                                          'flutter_${DateTime.now().millisecondsSinceEpoch}_${_generateRandomString(6)}';
+                                      _logMessage(
+                                          'System', 'Generated new Client ID',
+                                          isIncoming: false);
+                                    },
+                                    tooltip: 'Generate new Client ID',
+                                  ),
+                                ],
+                              ),
+
+                              // Auto-reconnect setting
+                              CheckboxListTile(
+                                title: const Text('Auto-reconnect'),
+                                subtitle: const Text(
+                                    'Automatically reconnect if connection is lost'),
+                                value: _autoReconnect,
+                                onChanged: (value) => setState(
+                                    () => _autoReconnect = value ?? true),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+
+                              if (_reconnectAttempts > 0) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: _reconnectAttempts >=
+                                            _maxReconnectAttempts
+                                        ? Colors.red.withOpacity(0.1)
+                                        : Colors.orange.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: _reconnectAttempts >=
+                                              _maxReconnectAttempts
+                                          ? Colors.red
+                                          : Colors.orange,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _reconnectAttempts >=
+                                                _maxReconnectAttempts
+                                            ? Icons.error
+                                            : Icons.autorenew,
+                                        color: _reconnectAttempts >=
+                                                _maxReconnectAttempts
+                                            ? Colors.red
+                                            : Colors.orange,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Reconnect attempts: $_reconnectAttempts/$_maxReconnectAttempts',
+                                        style: TextStyle(
+                                          color: _reconnectAttempts >=
+                                                  _maxReconnectAttempts
+                                              ? Colors.red
+                                              : Colors.orange,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                        ],
-                        
-                        const SizedBox(height: 16),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            if (constraints.maxWidth > 400) {
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: DropdownButtonFormField<MqttQos>(
-                                      value: _qos,
-                                      items: const [
-                                        DropdownMenuItem(
-                                          value: MqttQos.atMostOnce,
-                                          child: Text('QoS 0 - At Most Once'),
+
+                              const SizedBox(height: 16),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  if (constraints.maxWidth > 400) {
+                                    return Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child:
+                                              DropdownButtonFormField<MqttQos>(
+                                            value: _qos,
+                                            items: const [
+                                              DropdownMenuItem(
+                                                value: MqttQos.atMostOnce,
+                                                child: Text(
+                                                    'QoS 0 - At Most Once'),
+                                              ),
+                                              DropdownMenuItem(
+                                                value: MqttQos.atLeastOnce,
+                                                child: Text(
+                                                    'QoS 1 - At Least Once'),
+                                              ),
+                                              DropdownMenuItem(
+                                                value: MqttQos.exactlyOnce,
+                                                child: Text(
+                                                    'QoS 2 - Exactly Once'),
+                                              ),
+                                            ],
+                                            onChanged: _connectionState ==
+                                                    ConnectionState.connected
+                                                ? null
+                                                : (v) => setState(() => _qos =
+                                                    v ?? MqttQos.atMostOnce),
+                                            decoration:
+                                                inputDecoration.copyWith(
+                                                    labelText: 'Default QoS'),
+                                          ),
                                         ),
-                                        DropdownMenuItem(
-                                          value: MqttQos.atLeastOnce,
-                                          child: Text('QoS 1 - At Least Once'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: MqttQos.exactlyOnce,
-                                          child: Text('QoS 2 - Exactly Once'),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          flex: 1,
+                                          child: ElevatedButton(
+                                            onPressed: _connectionState ==
+                                                    ConnectionState.connected
+                                                ? _disconnect
+                                                : _connect,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  _connectionState ==
+                                                          ConnectionState
+                                                              .connected
+                                                      ? Colors.red
+                                                      : Colors.green,
+                                              foregroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 16),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8)),
+                                            ),
+                                            child: Text(
+                                              _connectionState ==
+                                                      ConnectionState.connected
+                                                  ? 'DISCONNECT'
+                                                  : 'CONNECT',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
                                         ),
                                       ],
-                                      onChanged: _connectionState == ConnectionState.connected ? null : (v) => setState(() => _qos = v ?? MqttQos.atMostOnce),
-                                      decoration: inputDecoration.copyWith(labelText: 'Default QoS'),
+                                    );
+                                  } else {
+                                    return Column(
+                                      children: [
+                                        DropdownButtonFormField<MqttQos>(
+                                          value: _qos,
+                                          items: const [
+                                            DropdownMenuItem(
+                                              value: MqttQos.atMostOnce,
+                                              child:
+                                                  Text('QoS 0 - At Most Once'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: MqttQos.atLeastOnce,
+                                              child:
+                                                  Text('QoS 1 - At Least Once'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: MqttQos.exactlyOnce,
+                                              child:
+                                                  Text('QoS 2 - Exactly Once'),
+                                            ),
+                                          ],
+                                          onChanged: _connectionState ==
+                                                  ConnectionState.connected
+                                              ? null
+                                              : (v) => setState(() => _qos =
+                                                  v ?? MqttQos.atMostOnce),
+                                          decoration: inputDecoration.copyWith(
+                                              labelText: 'Default QoS'),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed: _connectionState ==
+                                                    ConnectionState.connected
+                                                ? _disconnect
+                                                : _connect,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  _connectionState ==
+                                                          ConnectionState
+                                                              .connected
+                                                      ? Colors.red
+                                                      : Colors.green,
+                                              foregroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 16),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8)),
+                                            ),
+                                            child: Text(_connectionState ==
+                                                    ConnectionState.connected
+                                                ? 'DISCONNECT'
+                                                : 'CONNECT'),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Authentication Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.security, color: Colors.purple),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Authentication',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Username/Password for secure brokers',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 16),
+                              CheckboxListTile(
+                                title: const Text('Enable Authentication'),
+                                subtitle: const Text('Use username/password'),
+                                value: _enableAuth,
+                                onChanged: (value) => setState(
+                                    () => _enableAuth = value ?? false),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              if (_enableAuth) ...[
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: usernameCtrl,
+                                  decoration: inputDecoration.copyWith(
+                                    labelText: 'Username',
+                                    hintText: 'e.g., admin, user, iot_device',
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: passwordCtrl,
+                                  obscureText: _hidePassword,
+                                  decoration: inputDecoration.copyWith(
+                                    labelText: 'Password',
+                                    hintText: 'Enter your password',
+                                    suffixIcon: IconButton(
+                                      icon: Icon(_hidePassword
+                                          ? Icons.visibility
+                                          : Icons.visibility_off),
+                                      onPressed: () => setState(
+                                          () => _hidePassword = !_hidePassword),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Connection Settings Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.settings, color: Colors.brown),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Connection Settings',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: CheckboxListTile(
+                                      title: const Text('Clean Session'),
+                                      subtitle: const Text(
+                                          'TRUE: Fresh start, FALSE: Remember subscriptions'),
+                                      value: _cleanSession,
+                                      onChanged: (value) => setState(
+                                          () => _cleanSession = value ?? true),
+                                      dense: true,
+                                      contentPadding: EdgeInsets.zero,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    flex: 1,
-                                    child: ElevatedButton(
-                                      onPressed: _connectionState == ConnectionState.connected ? _disconnect : _connect,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: _connectionState == ConnectionState.connected ? Colors.red : Colors.green,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 16),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    child: TextField(
+                                      controller: keepAliveCtrl,
+                                      decoration: inputDecoration.copyWith(
+                                        labelText: 'Keep Alive (seconds)',
+                                        hintText: 'e.g., 60',
                                       ),
-                                      child: Text(
-                                        _connectionState == ConnectionState.connected ? 'DISCONNECT' : 'CONNECT',
-                                        textAlign: TextAlign.center,
-                                      ),
+                                      keyboardType: TextInputType.number,
                                     ),
                                   ),
                                 ],
-                              );
-                            } else {
-                              return Column(
-                                children: [
-                                  DropdownButtonFormField<MqttQos>(
-                                    value: _qos,
-                                    items: const [
-                                      DropdownMenuItem(
-                                        value: MqttQos.atMostOnce,
-                                        child: Text('QoS 0 - At Most Once'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: MqttQos.atLeastOnce,
-                                        child: Text('QoS 1 - At Least Once'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: MqttQos.exactlyOnce,
-                                        child: Text('QoS 2 - Exactly Once'),
-                                      ),
-                                    ],
-                                    onChanged: _connectionState == ConnectionState.connected ? null : (v) => setState(() => _qos = v ?? MqttQos.atMostOnce),
-                                    decoration: inputDecoration.copyWith(labelText: 'Default QoS'),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: _connectionState == ConnectionState.connected ? _disconnect : _connect,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: _connectionState == ConnectionState.connected ? Colors.red : Colors.green,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 16),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      ),
-                                      child: Text(_connectionState == ConnectionState.connected ? 'DISCONNECT' : 'CONNECT'),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Authentication Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.security, color: Colors.purple),
-                            SizedBox(width: 8),
-                            Text(
-                              'Authentication',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Username/Password for secure brokers',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 16),
-                        CheckboxListTile(
-                          title: const Text('Enable Authentication'),
-                          subtitle: const Text('Use username/password'),
-                          value: _enableAuth,
-                          onChanged: (value) => setState(() => _enableAuth = value ?? false),
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        if (_enableAuth) ...[
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: usernameCtrl,
-                            decoration: inputDecoration.copyWith(
-                              labelText: 'Username',
-                              hintText: 'e.g., admin, user, iot_device',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: passwordCtrl,
-                            obscureText: _hidePassword,
-                            decoration: inputDecoration.copyWith(
-                              labelText: 'Password', 
-                              hintText: 'Enter your password',
-                              suffixIcon: IconButton(
-                                icon: Icon(_hidePassword ? Icons.visibility : Icons.visibility_off),
-                                onPressed: () => setState(() => _hidePassword = !_hidePassword),
                               ),
-                            ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  '💡 Clean Session = TRUE: Fresh connection, no persistent session\n'
+                                  'Clean Session = FALSE: Broker remembers session (required for Will messages with some brokers)\n'
+                                  '⚠️ Note: For reliable Will messages, use Clean Session = FALSE',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.blue),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Connection Settings Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.settings, color: Colors.brown),
-                            SizedBox(width: 8),
-                            Text(
-                              'Connection Settings',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CheckboxListTile(
-                                title: const Text('Clean Session'),
-                                subtitle: const Text('TRUE: Fresh start, FALSE: Remember subscriptions'),
-                                value: _cleanSession,
-                                onChanged: (value) => setState(() => _cleanSession = value ?? true),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Will Message Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.emergency, color: Colors.orange),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Will Message',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Message published if client disconnects unexpectedly (app crash/swipe)',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 16),
+                              CheckboxListTile(
+                                title: const Text('Enable Will Message'),
+                                subtitle: const Text(
+                                    'Send message if connection is lost abruptly'),
+                                value: _enableWillMessage,
+                                onChanged: (value) => setState(
+                                    () => _enableWillMessage = value ?? false),
                                 dense: true,
                                 contentPadding: EdgeInsets.zero,
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextField(
-                                controller: keepAliveCtrl,
-                                decoration: inputDecoration.copyWith(
-                                  labelText: 'Keep Alive (seconds)',
-                                  hintText: 'e.g., 60',
+                              if (_enableWillMessage) ...[
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: willTopicCtrl,
+                                  decoration: inputDecoration.copyWith(
+                                    labelText: 'Will Topic',
+                                    hintText: 'e.g., device/status',
+                                  ),
                                 ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            '💡 Clean Session = TRUE: Fresh connection, no persistent session\n'
-                            'Clean Session = FALSE: Broker remembers session (required for Will messages with some brokers)\n'
-                            '⚠️ Note: For reliable Will messages, use Clean Session = FALSE',
-                            style: TextStyle(fontSize: 12, color: Colors.blue),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Will Message Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.emergency, color: Colors.orange),
-                            SizedBox(width: 8),
-                            Text(
-                              'Will Message',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Message published if client disconnects unexpectedly (app crash/swipe)',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 16),
-                        CheckboxListTile(
-                          title: const Text('Enable Will Message'),
-                          subtitle: const Text('Send message if connection is lost abruptly'),
-                          value: _enableWillMessage,
-                          onChanged: (value) => setState(() => _enableWillMessage = value ?? false),
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        if (_enableWillMessage) ...[
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: willTopicCtrl,
-                            decoration: inputDecoration.copyWith(
-                              labelText: 'Will Topic',
-                              hintText: 'e.g., device/status',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: willPayloadCtrl,
-                            decoration: inputDecoration.copyWith(
-                              labelText: 'Will Payload', 
-                              hintText: 'e.g., offline, disconnected, error',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<MqttQos>(
-                                  value: _willQos,
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: MqttQos.atMostOnce, 
-                                      child: Text('Will QoS 0'),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: willPayloadCtrl,
+                                  decoration: inputDecoration.copyWith(
+                                    labelText: 'Will Payload',
+                                    hintText:
+                                        'e.g., offline, disconnected, error',
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: DropdownButtonFormField<MqttQos>(
+                                        value: _willQos,
+                                        items: const [
+                                          DropdownMenuItem(
+                                            value: MqttQos.atMostOnce,
+                                            child: Text('Will QoS 0'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: MqttQos.atLeastOnce,
+                                            child: Text('Will QoS 1'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: MqttQos.exactlyOnce,
+                                            child: Text('Will QoS 2'),
+                                          ),
+                                        ],
+                                        onChanged: (v) => setState(() =>
+                                            _willQos = v ?? MqttQos.atMostOnce),
+                                        decoration: inputDecoration.copyWith(
+                                            labelText: 'Will QoS'),
+                                      ),
                                     ),
-                                    DropdownMenuItem(
-                                      value: MqttQos.atLeastOnce, 
-                                      child: Text('Will QoS 1'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: MqttQos.exactlyOnce, 
-                                      child: Text('Will QoS 2'),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: CheckboxListTile(
+                                        title: const Text('Retain Will'),
+                                        subtitle: const Text(
+                                            'Broker stores Will for new subscribers'),
+                                        value: _willRetain,
+                                        onChanged: (value) => setState(
+                                            () => _willRetain = value ?? false),
+                                        dense: true,
+                                      ),
                                     ),
                                   ],
-                                  onChanged: (v) => setState(() => _willQos = v ?? MqttQos.atMostOnce),
-                                  decoration: inputDecoration.copyWith(labelText: 'Will QoS'),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: CheckboxListTile(
-                                  title: const Text('Retain Will'),
-                                  subtitle: const Text('Broker stores Will for new subscribers'),
-                                  value: _willRetain,
-                                  onChanged: (value) => setState(() => _willRetain = value ?? false),
-                                  dense: true,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              '💡 Will Message Tips:\n'
-                              '1. Set Clean Session = FALSE for best results\n'
-                              '2. Will triggers on app crash/swipe (no disconnect packet)\n'
-                              '3. Test by swiping app away or force closing\n'
-                              '4. Subscribe to Will topic to see the message',
-                              style: TextStyle(fontSize: 12, color: Colors.orange),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _clearWillRetainedMessage,
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.orange,
-                                side: const BorderSide(color: Colors.orange),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                              ),
-                              icon: const Icon(Icons.cleaning_services, size: 18),
-                              label: const Text('CLEAR RETAINED WILL MESSAGE'),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Subscription Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.rss_feed, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Subscribe to Topics',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Use + for single-level and # for multi-level wildcards',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: subTopicCtrl,
-                                decoration: inputDecoration.copyWith(
-                                  labelText: 'Topic to subscribe (supports + and #)',
-                                  hintText: 'e.g., sensor/+/temperature, home/#',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            ElevatedButton(
-                              onPressed: _subscribe,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: const Text(
-                                'SUBSCRIBE',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (_subscriptions.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Active Subscriptions:', style: TextStyle(fontWeight: FontWeight.bold)),
-                              IconButton(
-                                icon: const Icon(Icons.refresh, size: 18),
-                                onPressed: _connectionState == ConnectionState.connected ? _resubscribeToAllTopics : null,
-                                tooltip: 'Refresh All Subscriptions',
-                              ),
-                            ],
-                          ),
-                          const Divider(),
-                          ..._subscriptions.map((sub) => ListTile(
-                            title: Text(
-                              sub.topic,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: sub.topic.contains('+') || sub.topic.contains('#') 
-                                    ? Colors.orange 
-                                    : null,
-                                fontWeight: sub.topic.contains('+') || sub.topic.contains('#')
-                                    ? FontWeight.bold
-                                    : null,
-                              ),
-                            ),
-                            subtitle: Text('QoS: ${sub.qos.index} ${sub.topic.contains('+') || sub.topic.contains('#') ? '• Wildcard' : ''}'),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.unsubscribe, color: Colors.red),
-                              onPressed: () => _unsubscribe(sub.topic),
-                            ),
-                            dense: true,
-                          )),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              '✅ Subscriptions will be preserved when you disconnect/reconnect',
-                              style: TextStyle(fontSize: 12, color: Colors.green),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-
-              //Publish Message
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.send, color: Colors.purple),
-                            SizedBox(width: 8),
-                            Text(
-                              'Publish Message',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-
-
-
-                         // ========== ADD THIS SECTION ==========
-        if (_subscriptions.isNotEmpty) ...[
-          const Text(
-            'Quick Select from Subscriptions:',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: _subscriptions.map((sub) => FilterChip(
-              label: Text(
-                sub.topic,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: pubTopicCtrl.text == sub.topic ? Colors.white : null,
-                ),
-              ),
-              selected: pubTopicCtrl.text == sub.topic,
-              onSelected: (selected) {
-                setState(() {
-                  pubTopicCtrl.text = sub.topic;
-                });
-              },
-              backgroundColor: pubTopicCtrl.text == sub.topic 
-                  ? Colors.purple 
-                  : Colors.grey[200],
-              selectedColor: Colors.purple,
-              checkmarkColor: Colors.white,
-            )).toList(),
-          ),
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 12),
-        ],
-        // ========== END OF ADDED SECTION ==========
-
-      TextField(
-          controller: pubTopicCtrl,
-          decoration: inputDecoration.copyWith(
-            labelText: 'Topic to publish',
-            // Add dropdown arrow if there are subscriptions
-            suffixIcon: _subscriptions.isNotEmpty
-                ? PopupMenuButton<String>(
-                    icon: const Icon(Icons.arrow_drop_down, color: Colors.purple),
-                    itemBuilder: (context) {
-                      return _subscriptions.map((sub) {
-                        return PopupMenuItem(
-                          value: sub.topic,
-                          child: Text(sub.topic),
-                        );
-                      }).toList();
-                    },
-                    onSelected: (topic) {
-                      setState(() {
-                        pubTopicCtrl.text = topic;
-                      });
-                    },
-                  )
-                : null,
-          ),
-                            ),
-
-
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: payloadCtrl,
-                          decoration: inputDecoration.copyWith(labelText: 'Payload'),
-                          minLines: 2,
-                          maxLines: 4,
-                        ),
-                        const SizedBox(height: 12),
-                        CheckboxListTile(
-                          title: const Text('Retain Message'),
-                          subtitle: const Text('Broker will store last message and deliver to new subscribers'),
-                          value: _retainMessage,
-                          onChanged: (value) => setState(() => _retainMessage = value ?? false),
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                          activeColor: Colors.blue,
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _publish,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                            child: const Text('PUBLISH'),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: _clearRetainedMessage,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.orange,
-                              side: const BorderSide(color: Colors.orange),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: const Text('CLEAR RETAINED MESSAGE'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-
-
-                const SizedBox(height: 16),
-
-                // Messages Log Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.message, color: Colors.teal),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Message Log',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(
-                                _showHistory ? Icons.live_tv : Icons.history,
-                                color: _showHistory ? Colors.blue : Colors.grey,
-                              ),
-                              onPressed: _toggleHistoryView,
-                              tooltip: _showHistory ? 'Switch to Live View' : 'View Full History',
-                            ),
-                            Text(
-                              '${_filteredMessages.length} messages',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: searchCtrl,
-                          decoration: inputDecoration.copyWith(
-                            labelText: 'Search messages...',
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _searchQuery.isNotEmpty 
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      searchCtrl.clear();
-                                      setState(() => _searchQuery = '');
-                                    },
-                                  )
-                                : null,
-                          ),
-                          onChanged: _onSearchChanged,
-                        ),
-                        
-                        if (_searchQuery.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '🔍 Showing ${_filteredMessages.length} messages matching "$_searchQuery"',
-                              style: const TextStyle(fontSize: 12, color: Colors.blue),
-                            ),
-                          ),
-                        ],
-                        
-                        if (_showHistory) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              '📚 Viewing Full History',
-                              style: TextStyle(fontSize: 12, color: Colors.blue),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        Container(
-                          height: 300,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(8),
-                            color: _isDarkMode ? Colors.grey[800] : Colors.grey.shade50,
-                          ),
-                          child: _filteredMessages.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.search_off,
-                                        size: 48,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        _searchQuery.isNotEmpty 
-                                            ? 'No messages found for "$_searchQuery"'
-                                            : 'No messages yet\n\nConnect to broker and subscribe to topics',
-                                        style: TextStyle(color: Colors.grey.shade600),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                )
-
-
-                              : ListView.builder(
-                                      reverse: true,
-                                      controller: _scrollController,  // ← ADD THIS LINE
-                                      itemCount: _filteredMessages.length,
-                                      itemBuilder: (context, index) {
-                                      final message = _filteredMessages[index];
-                                      return MessageItem(message: message);
-                                      },
-                                      ),
-
+                                  child: const Text(
+                                    '💡 Will Message Tips:\n'
+                                    '1. Set Clean Session = FALSE for best results\n'
+                                    '2. Will triggers on app crash/swipe (no disconnect packet)\n'
+                                    '3. Test by swiping app away or force closing\n'
+                                    '4. Subscribe to Will topic to see the message',
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.orange),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: _clearWillRetainedMessage,
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.orange,
+                                      side: const BorderSide(
+                                          color: Colors.orange),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                    icon: const Icon(Icons.cleaning_services,
+                                        size: 18),
+                                    label: const Text(
+                                        'CLEAR RETAINED WILL MESSAGE'),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Subscription Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.rss_feed, color: Colors.green),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Subscribe to Topics',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Use + for single-level and # for multi-level wildcards',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: subTopicCtrl,
+                                      decoration: inputDecoration.copyWith(
+                                        labelText:
+                                            'Topic to subscribe (supports + and #)',
+                                        hintText:
+                                            'e.g., sensor/+/temperature, home/#',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  ElevatedButton(
+                                    onPressed: _subscribe,
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8)),
+                                    ),
+                                    child: const Text(
+                                      'SUBSCRIBE',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_subscriptions.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text('Active Subscriptions:',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    IconButton(
+                                      icon: const Icon(Icons.refresh, size: 18),
+                                      onPressed: _connectionState ==
+                                              ConnectionState.connected
+                                          ? _resubscribeToAllTopics
+                                          : null,
+                                      tooltip: 'Refresh All Subscriptions',
+                                    ),
+                                  ],
+                                ),
+                                const Divider(),
+                                ..._subscriptions.map((sub) => ListTile(
+                                      title: Text(
+                                        sub.topic,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: sub.topic.contains('+') ||
+                                                  sub.topic.contains('#')
+                                              ? Colors.orange
+                                              : null,
+                                          fontWeight: sub.topic.contains('+') ||
+                                                  sub.topic.contains('#')
+                                              ? FontWeight.bold
+                                              : null,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                          'QoS: ${sub.qos.index} ${sub.topic.contains('+') || sub.topic.contains('#') ? '• Wildcard' : ''}'),
+                                      trailing: IconButton(
+                                        icon: const Icon(Icons.unsubscribe,
+                                            color: Colors.red),
+                                        onPressed: () =>
+                                            _unsubscribe(sub.topic),
+                                      ),
+                                      dense: true,
+                                    )),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    '✅ Subscriptions will be preserved when you disconnect/reconnect',
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.green),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      //Publish Message
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.send, color: Colors.purple),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Publish Message',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // ========== ADD THIS SECTION ==========
+                              if (_subscriptions.isNotEmpty) ...[
+                                const Text(
+                                  'Quick Select from Subscriptions:',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: _subscriptions
+                                      .map((sub) => FilterChip(
+                                            label: Text(
+                                              sub.topic,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: pubTopicCtrl.text ==
+                                                        sub.topic
+                                                    ? Colors.white
+                                                    : null,
+                                              ),
+                                            ),
+                                            selected:
+                                                pubTopicCtrl.text == sub.topic,
+                                            onSelected: (selected) {
+                                              setState(() {
+                                                pubTopicCtrl.text = sub.topic;
+                                              });
+                                            },
+                                            backgroundColor:
+                                                pubTopicCtrl.text == sub.topic
+                                                    ? Colors.purple
+                                                    : Colors.grey[200],
+                                            selectedColor: Colors.purple,
+                                            checkmarkColor: Colors.white,
+                                          ))
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 12),
+                                const Divider(),
+                                const SizedBox(height: 12),
+                              ],
+                              // ========== END OF ADDED SECTION ==========
+
+                              TextField(
+                                controller: pubTopicCtrl,
+                                decoration: inputDecoration.copyWith(
+                                  labelText: 'Topic to publish',
+                                  // Add dropdown arrow if there are subscriptions
+                                  suffixIcon: _subscriptions.isNotEmpty
+                                      ? PopupMenuButton<String>(
+                                          icon: const Icon(
+                                              Icons.arrow_drop_down,
+                                              color: Colors.purple),
+                                          itemBuilder: (context) {
+                                            return _subscriptions.map((sub) {
+                                              return PopupMenuItem(
+                                                value: sub.topic,
+                                                child: Text(sub.topic),
+                                              );
+                                            }).toList();
+                                          },
+                                          onSelected: (topic) {
+                                            setState(() {
+                                              pubTopicCtrl.text = topic;
+                                            });
+                                          },
+                                        )
+                                      : null,
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: payloadCtrl,
+                                decoration: inputDecoration.copyWith(
+                                    labelText: 'Payload'),
+                                minLines: 2,
+                                maxLines: 4,
+                              ),
+                              const SizedBox(height: 12),
+                              CheckboxListTile(
+                                title: const Text('Retain Message'),
+                                subtitle: const Text(
+                                    'Broker will store last message and deliver to new subscribers'),
+                                value: _retainMessage,
+                                onChanged: (value) => setState(
+                                    () => _retainMessage = value ?? false),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                                activeColor: Colors.blue,
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _publish,
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  child: const Text('PUBLISH'),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: _clearRetainedMessage,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.orange,
+                                    side:
+                                        const BorderSide(color: Colors.orange),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                  ),
+                                  child: const Text('CLEAR RETAINED MESSAGE'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Messages Log Section
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.message, color: Colors.teal),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Message Log',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: Icon(
+                                      _showHistory
+                                          ? Icons.live_tv
+                                          : Icons.history,
+                                      color: _showHistory
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                    ),
+                                    onPressed: _toggleHistoryView,
+                                    tooltip: _showHistory
+                                        ? 'Switch to Live View'
+                                        : 'View Full History',
+                                  ),
+                                  Text(
+                                    '${_filteredMessages.length} messages',
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: searchCtrl,
+                                decoration: inputDecoration.copyWith(
+                                  labelText: 'Search messages...',
+                                  prefixIcon: const Icon(Icons.search),
+                                  suffixIcon: _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            searchCtrl.clear();
+                                            setState(() => _searchQuery = '');
+                                          },
+                                        )
+                                      : null,
+                                ),
+                                onChanged: _onSearchChanged,
+                              ),
+                              if (_searchQuery.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '🔍 Showing ${_filteredMessages.length} messages matching "$_searchQuery"',
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.blue),
+                                  ),
+                                ),
+                              ],
+                              if (_showHistory) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    '📚 Viewing Full History',
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.blue),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 12),
+                              Container(
+                                height: 300,
+                                decoration: BoxDecoration(
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: _isDarkMode
+                                      ? Colors.grey[800]
+                                      : Colors.grey.shade50,
+                                ),
+                                child: _filteredMessages.isEmpty
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.search_off,
+                                              size: 48,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              _searchQuery.isNotEmpty
+                                                  ? 'No messages found for "$_searchQuery"'
+                                                  : 'No messages yet\n\nConnect to broker and subscribe to topics',
+                                              style: TextStyle(
+                                                  color: Colors.grey.shade600),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.builder(
+                                        reverse: true,
+                                        controller:
+                                            _scrollController, // ← ADD THIS LINE
+                                        itemCount: _filteredMessages.length,
+                                        itemBuilder: (context, index) {
+                                          final message =
+                                              _filteredMessages[index];
+                                          return MessageItem(message: message);
+                                        },
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Backup & Restore Card - UPDATED
+                      const SizedBox(height: 16),
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Backup & Restore Connections',
+                                style: TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Export/Import connection profiles and message templates',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: _exportProfilesAndTemplates,
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.green,
+                                        side: const BorderSide(
+                                            color: Colors.green),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                      ),
+                                      icon: const Icon(Icons.backup, size: 15),
+                                      label: const Text(
+                                        'EXPORT BACKUP',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: _importProfilesAndTemplates,
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.blue,
+                                        side: const BorderSide(
+                                            color: Colors.blue),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                      ),
+                                      icon: const Icon(Icons.restore, size: 15),
+                                      label: const Text(
+                                        'IMPORT BACKUP',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Current: ${_profiles.length} profiles, ${_templates.length} templates',
+                                style: const TextStyle(
+                                    fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
+              ),
 
-             
-                const SizedBox(height: 16),
-
-                // Backup & Restore Card - UPDATED
-const SizedBox(height: 16),
-Card(
-  elevation: 2,
-  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-  child: Padding(
-    padding: const EdgeInsets.all(12),
-    child: Column(
-      children: [
-        const Text(
-          'Backup & Restore Connections',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Export/Import connection profiles and message templates',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _exportProfilesAndTemplates,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.green,
-                  side: const BorderSide(color: Colors.green),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                icon: const Icon(Icons.backup, size: 15),
-                label: const Text('EXPORT BACKUP',
-                style: TextStyle(fontSize: 14),
+              // Scroll to top button (shows when scrolled down)
+              Positioned(
+                bottom: 20,
+                right: 20,
+                child: FloatingActionButton.small(
+                  onPressed: () {
+                    if (_scrollController.hasClients) {
+                      _scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  },
+                  tooltip: 'Scroll to newest messages',
+                  child: const Icon(Icons.arrow_upward),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _importProfilesAndTemplates,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.blue,
-                  side: const BorderSide(color: Colors.blue),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                icon: const Icon(Icons.restore, size: 15),
-                label: const Text('IMPORT BACKUP',
-                style: TextStyle(fontSize: 14),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Current: ${_profiles.length} profiles, ${_templates.length} templates',
-          style: const TextStyle(fontSize: 11, color: Colors.grey),
-        ),
-      ],
-    ),
-  ),
-),
-
-
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ),
-
-   // Scroll to top button (shows when scrolled down)
-    Positioned(
-      bottom: 20,
-      right: 20,
-      child: FloatingActionButton.small(
-        onPressed: () {
-          if (_scrollController.hasClients) {
-            _scrollController.animateTo(
-              0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          }
-        },
-        tooltip: 'Scroll to newest messages',
-        child: const Icon(Icons.arrow_upward),
-      ),
-    ),
-
-          ],
-        )
-
-      ),
+            ],
+          )),
     );
   }
 }
-
-
-
-
-
-
 
 // Data model for MQTT messages
 class Message {
@@ -4881,16 +5317,16 @@ class MessageItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: message.isIncoming 
+        color: message.isIncoming
             ? (isDarkMode ? Colors.blue.shade900 : Colors.blue.shade50)
             : (isDarkMode ? Colors.green.shade900 : Colors.green.shade50),
         border: Border.all(
-          color: message.isIncoming 
+          color: message.isIncoming
               ? (isDarkMode ? Colors.blue.shade700 : Colors.blue.shade200)
               : (isDarkMode ? Colors.green.shade700 : Colors.green.shade200),
         ),
@@ -4904,7 +5340,7 @@ class MessageItem extends StatelessWidget {
               Icon(
                 message.isIncoming ? Icons.arrow_downward : Icons.arrow_upward,
                 size: 16,
-                color: message.isIncoming 
+                color: message.isIncoming
                     ? (isDarkMode ? Colors.blue.shade300 : Colors.blue)
                     : (isDarkMode ? Colors.green.shade300 : Colors.green),
               ),
@@ -4914,9 +5350,13 @@ class MessageItem extends StatelessWidget {
                   message.topic,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: message.isIncoming 
-                        ? (isDarkMode ? Colors.blue.shade200 : Colors.blue.shade800)
-                        : (isDarkMode ? Colors.green.shade200 : Colors.green.shade800),
+                    color: message.isIncoming
+                        ? (isDarkMode
+                            ? Colors.blue.shade200
+                            : Colors.blue.shade800)
+                        : (isDarkMode
+                            ? Colors.green.shade200
+                            : Colors.green.shade800),
                     fontSize: 14,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -4925,24 +5365,29 @@ class MessageItem extends StatelessWidget {
               const SizedBox(width: 12),
               Text(
                 'QoS: ${message.qos}',
-                style: TextStyle(fontSize: 12, color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode
+                        ? Colors.grey.shade400
+                        : Colors.grey.shade700),
               ),
               const SizedBox(width: 8),
               Text(
                 '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}:${message.timestamp.second.toString().padLeft(2, '0')}',
-                style: TextStyle(fontSize: 12, color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode
+                        ? Colors.grey.shade400
+                        : Colors.grey.shade700),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          SelectableText(
-            message.payload,
-            style: TextStyle(
-              fontFamily: 'monospace', 
-              fontSize: 13, 
-              color: isDarkMode ? Colors.white : Colors.black87
-            )
-          ),
+          SelectableText(message.payload,
+              style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  color: isDarkMode ? Colors.white : Colors.black87)),
         ],
       ),
     );
