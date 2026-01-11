@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/mqtt-mobile-client.svg?style=social)](https://github.com/YOUR_USERNAME/mqtt-mobile-client/stargazers)
 
-A professional-grade MQTT client application built with Flutter, featuring robust connection management, advanced message handling, and an intuitive user interface. This application rivals commercial MQTT clients while offering superior error handling and user experience.
+A professional-grade MQTT client application built with Flutter, featuring enterprise-level security, robust connection management, and complete SSL/TLS certificate support. This application not only rivals commercial MQTT clients but surpasses them with superior security implementation and user experience.
 
 <div align="center">
   <img src="screenshots/app_demo.gif" width="80%" alt="MQTT Mobile Client Demo">
@@ -74,17 +74,18 @@ A professional-grade MQTT client application built with Flutter, featuring robus
 
 **Connection Management** | **Message Log** | **Profiles & Templates**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="images/connection.jpeg" width="300" alt="Connection Screen"> | 
-<img src="images/message.jpeg" width="300" alt="Message Log"> | 
-<img src="images/profiles.PNG" width="300" alt="Profiles Management">
+<img src="images/connection.jpeg" width="300"> | <img src="images/message.jpeg" width="300"> | <img src="images/profiles.PNG" width="300">
 
-**Dark Mode Theme** | **Will Message Setup** | **Export Functionality**
+**SSL / TLS Setup** | **Dark Mode Theme** | **Will Message Setup**
 :-------------------------:|:-------------------------:|:-------------------------:
-<img src="images/dark_mode.PNG" width="300" alt="Dark Mode"> | 
-<img src="images/will_config.PNG" width="300" alt="Will Configuration"> | 
-<img src="images/export.PNG" width="300" alt="Export Feature">
+<img src="images/ssl.PNG" width="300"> | <img src="images/dark_mode.PNG" width="300"> | <img src="images/will_config.PNG" width="300">
+
+**Export & Import**
+:-------------------------:
+<img src="images/export.PNG" width="300">
 
 </div>
+
 
 ## 🚀 Quick Start
 
