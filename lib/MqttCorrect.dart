@@ -515,7 +515,7 @@ class _MqttCorrectState extends State<MqttCorrect> {
   final keyPasswordCtrl = TextEditingController();
 
   // For testing self-signed certificates (backward compatibility)
-  bool _allowSelfSigned = true;
+  final bool _allowSelfSigned = true;
 
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   bool _showHistory = false;
